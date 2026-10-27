@@ -119,3 +119,14 @@ export function subscribe(events: string[], fn: (d: unknown, ev: string) => void
 export const short = (h: string, n = 6) => (h.length > 2 * n ? `${h.slice(0, n)}..${h.slice(-4)}` : h);
 export const fmtArgs = (a: Record<string, unknown>) =>
   Object.entries(a).map(([k, v]) => `${k}=${typeof v === "string" ? JSON.stringify(v.length > 48 ? v.slice(0, 48) + "…" : v) : JSON.stringify(v)}`).join(", ");
+
+export interface LlmEvalSummary {
+  model: string; setting: "base" | "enhanced"; dataset: string; cases: number;
+  directHarm: { n: number; asrUnprotected: number; asrProtected: number };
+  dataStealing: { n: number; asrUnprotected: number; asrProtected: number };
+  overall: { asrUnprotected: number; asrProtected: number; attacksAttempted: number; attacksStopped: number; escalated: number };
+  utility: { finalAnswerUnprotected: number; finalAnswerProtected: number; benignCallsBlocked: number; benignCalls: number };
+  stoppedBy: Record<string, number>; causalReplays: number;
+  usage: { inputTokens: number; outputTokens: number; requests: number; estCostUsd: number };
+  errors: number; generatedAt: string; durationMs: number; notes: string;
+}

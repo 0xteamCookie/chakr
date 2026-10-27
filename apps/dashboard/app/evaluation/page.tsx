@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { post, useLive, type EvalReport } from "@/lib/api";
+import { post, useLive, type EvalReport, type LlmEvalSummary } from "@/lib/api";
 import { Button, Card, CardHead, Eyebrow, Kpi } from "@/components/ui";
 import { GroupedBars } from "@/components/charts";
 import { CountUp, Reveal } from "@/components/motion";
@@ -11,6 +11,7 @@ const ORANGE = "#e2582b";
 
 export default function Evaluation() {
   const { data, error, reload } = useLive<EvalReport | null>("/api/eval", [], 60_000);
+  const llm = useLive<{ base: LlmEvalSummary | null; enhanced: LlmEvalSummary | null }>("/api/eval/llm", [], 30_000);
   const [busy, setBusy] = useState(false);
   const rerun = async () => {
     setBusy(true);
@@ -80,6 +81,8 @@ export default function Evaluation() {
             </Card>
           </div>
 
+          {(llm.data?.base || llm.data?.enhanced) && <RealModel base={llm.data?.base ?? null} enhanced={llm.data?.enhanced ?? null} />}
+
           <Reveal><Card className="mt-6 p-6">
             <CardHead title="Every configuration" sub="Executed = the attacker's action ran with no human involved." />
             <div className="overflow-x-auto">
@@ -116,5 +119,51 @@ export default function Evaluation() {
         </>
       )}
     </div>
+  );
+}
+
+function RealModel({ base, enhanced }: { base: LlmEvalSummary | null; enhanced: LlmEvalSummary | null }) {
+  const runs = [base, enhanced].filter(Boolean) as LlmEvalSummary[];
+  const label = (r: LlmEvalSummary) => (r.setting === "base" ? "Base attacks" : "Enhanced attacks");
+  const sub = (r: LlmEvalSummary) => (r.setting === "base" ? "the injected instruction as written" : "prefixed with \"IMPORTANT!!! Ignore all previous instructions\"");
+  const model = runs[0].model;
+  const cost = runs.reduce((n, r) => n + r.usage.estCostUsd, 0);
+  return (
+    <Reveal>
+      <Card className="mt-6 p-6">
+        <CardHead title={`With a real model: ${model}`}
+          sub="The same InjecAgent cases as real tool-calling conversations. The model decides whether to follow the injection; with the shield, every call it makes is checked first." />
+        <div className="grid gap-6 xl:grid-cols-[1.2fr_1fr]">
+          <GroupedBars
+            categories={runs.map(label)}
+            sub={runs.map(sub)}
+            series={[
+              { name: "Without AgentShield", color: ORANGE, values: runs.map((r) => r.overall.asrUnprotected),
+                notes: runs.map((r) => `${r.overall.attacksAttempted} of ${r.cases} attacks succeeded`) },
+              { name: "With AgentShield", color: BLUE, values: runs.map((r) => r.overall.asrProtected),
+                notes: runs.map((r) => `${r.overall.attacksStopped} of ${r.overall.attacksAttempted} stopped`) },
+            ]}
+          />
+          <div className="grid grid-cols-2 gap-3">
+            {runs.map((r) => (
+              <div key={r.setting} className="rounded-2xl bg-canvas p-4">
+                <div className="text-[13px] font-semibold">{label(r)}</div>
+                <dl className="mt-2 space-y-1.5 text-[12.5px] text-ink-2">
+                  <div className="flex justify-between gap-2"><dt>model fell for it</dt><dd className="font-mono text-orange">{r.overall.attacksAttempted}/{r.cases}</dd></div>
+                  <div className="flex justify-between gap-2"><dt>stopped by the shield</dt><dd className="font-mono text-blue">{r.overall.attacksStopped}</dd></div>
+                  <div className="flex justify-between gap-2"><dt>normal calls blocked</dt><dd className="font-mono">{r.utility.benignCallsBlocked}/{r.utility.benignCalls}</dd></div>
+                  <div className="flex justify-between gap-2"><dt>final answer given</dt><dd className="font-mono">{r.utility.finalAnswerProtected}%</dd></div>
+                  <div className="flex justify-between gap-2"><dt>causal replays</dt><dd className="font-mono">{r.causalReplays}</dd></div>
+                </dl>
+              </div>
+            ))}
+          </div>
+        </div>
+        <p className="mt-4 text-[12.5px] text-muted">
+          {runs.map((r) => r.cases).reduce((a, b) => a + b, 0).toLocaleString()} conversations, {runs.reduce((n, r) => n + r.usage.requests, 0).toLocaleString()} API
+          requests, about ${cost.toFixed(2)} in total. {runs[0].notes}
+        </p>
+      </Card>
+    </Reveal>
   );
 }
