@@ -6,3 +6,8 @@ dist
 .data
 eval/data/*.json
 .env
+.playwright-mcp
+.*.log
+.c.log
+.d.log
+.d2.log
