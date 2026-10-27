@@ -41,6 +41,17 @@ export function appendReceipt(p: ReceiptPayload) {
   return job;
 }
 
+export interface OnchainInfo {
+  status: "ok" | "unreachable" | "empty";
+  network?: string;
+  contract?: string;
+  seq?: number;
+  head?: string;
+  matches?: boolean;
+  explorerUrl?: string;
+  error?: string;
+}
+
 export interface VerifyReport {
   ok: boolean;
   count: number;
@@ -48,7 +59,58 @@ export interface VerifyReport {
   brokenAt: number | null;
   problem: string | null;
   anchor: { seq: number; head: string; network: string; txHash: string | null; matches: boolean } | null;
+  onchain?: OnchainInfo;
 }
+
+const READ_ABI = [
+  { type: "function", name: "head", stateMutability: "view", inputs: [], outputs: [{ type: "bytes32" }] },
+  { type: "function", name: "seq", stateMutability: "view", inputs: [], outputs: [{ type: "uint256" }] },
+] as const;
+
+export type ChainReader = () => Promise<{ head: string; seq: number }>;
+
+async function viemReader(): Promise<{ head: string; seq: number }> {
+  const { createPublicClient, http } = await import("viem");
+  const { polygonAmoy } = await import("viem/chains");
+  const client = createPublicClient({ chain: polygonAmoy, transport: http(process.env.ANCHOR_RPC_URL, { timeout: 8000, retryCount: 1 }) });
+  const address = process.env.ANCHOR_CONTRACT as `0x${string}`;
+  const [head, seq] = await Promise.all([
+    client.readContract({ address, abi: READ_ABI, functionName: "head" }),
+    client.readContract({ address, abi: READ_ABI, functionName: "seq" }),
+  ]);
+  return { head: (head as string).replace(/^0x/, ""), seq: Number(seq) };
+}
+
+let reader: ChainReader = viemReader;
+let cache: { at: number; value: { head: string; seq: number } } | null = null;
+const CACHE_MS = 15_000;
+export function invalidateChainCache() { cache = null; }
+/** Test hook: replace the on-chain read. Pass null to restore the real one. */
+export function setChainReader(r: ChainReader | null) { reader = r ?? viemReader; cache = null; }
+
+async function readOnchain() {
+  if (cache && Date.now() - cache.at < CACHE_MS) return cache.value;
+  const value = await reader();
+  cache = { at: Date.now(), value };
+  return value;
+}
+
+const onchainConfigured = () => !!(process.env.ANCHOR_RPC_URL && process.env.ANCHOR_CONTRACT);
+
+async function onchainInfo(hashAt: Map<number, string>): Promise<OnchainInfo | undefined> {
+  if (!onchainConfigured()) return undefined;
+  const contract = process.env.ANCHOR_CONTRACT!;
+  const base = { network: "polygon-amoy", contract, explorerUrl: `https://amoy.polygonscan.com/address/${contract}` };
+  try {
+    const c = await readOnchain();
+    if (c.seq === 0 && (c.head === GENESIS || c.head === "")) return { ...base, status: "empty" };
+    return { ...base, status: "ok", seq: c.seq, head: c.head, matches: hashAt.get(c.seq) === c.head };
+  } catch (e) {
+    return { ...base, status: "unreachable", error: (e as Error).message.split("\n")[0].slice(0, 160) };
+  }
+}
+
+const onchainField = async (h: Map<number, string>) => { const o = await onchainInfo(h); return o ? { onchain: o } : {}; };
 
 export async function verifyChain(): Promise<VerifyReport> {
   const rows = await db.receipt.findMany({ orderBy: { seq: "asc" } });
@@ -57,10 +119,10 @@ export async function verifyChain(): Promise<VerifyReport> {
   for (const r of rows) {
     const expect = sha256(prev + r.payload);
     if (r.prevHash !== prev || r.hash !== expect) {
-      return { ok: false, count: rows.length, head: prev, brokenAt: r.seq, problem: "hash mismatch: entry was altered or removed", anchor: null };
+      return { ok: false, count: rows.length, head: prev, brokenAt: r.seq, problem: "hash mismatch: entry was altered or removed", anchor: null, ...await onchainField(hashAt) };
     }
     if (!verifyPayload({ hash: r.hash }, r.signature)) {
-      return { ok: false, count: rows.length, head: prev, brokenAt: r.seq, problem: "signature does not verify", anchor: null };
+      return { ok: false, count: rows.length, head: prev, brokenAt: r.seq, problem: "signature does not verify", anchor: null, ...await onchainField(hashAt) };
     }
     hashAt.set(r.seq, r.hash);
     prev = r.hash;
@@ -69,8 +131,34 @@ export async function verifyChain(): Promise<VerifyReport> {
   const anchor = a
     ? { seq: a.seq, head: a.head, network: a.network, txHash: a.txHash, matches: hashAt.get(a.seq) === a.head || (a.seq === 0 && a.head === GENESIS) }
     : null;
-  const ok = anchor ? anchor.matches : true;
-  return { ok, count: rows.length, head: prev, brokenAt: null, problem: ok ? null : "chain differs from the anchored head", anchor };
+  let ok = anchor ? anchor.matches : true;
+  let problem: string | null = ok ? null : "chain differs from the anchored head";
+  let brokenAt: number | null = null;
+
+  const onchain = await onchainInfo(hashAt);
+  if (onchain?.status === "ok" && !onchain.matches) { ok = false; brokenAt = onchain.seq ?? null; problem = "chain differs from the head anchored on-chain"; }
+  return { ok, count: rows.length, head: prev, brokenAt, problem, anchor, ...(onchain ? { onchain } : {}) };
+}
+
+/** Demo: alter the first DENY receipt and recompute every later hash and signature. */
+export async function rewriteHistory() {
+  const rows = await db.receipt.findMany({ orderBy: { seq: "asc" } });
+  const target = rows.find((r) => r.verdict === "DENY") ?? rows[0];
+  if (!target) return null;
+  const tail = rows.filter((r) => r.seq >= target.seq);
+  const backup = tail.map((r) => ({ seq: r.seq, payload: r.payload, prevHash: r.prevHash, hash: r.hash, signature: r.signature }));
+  let prev = target.prevHash;
+  for (const r of tail) {
+    let payload = r.payload;
+    if (r.seq === target.seq) {
+      const edited = payload.replace(/"verdict":"DENY"/, '"verdict":"ALLOW"');
+      payload = edited === payload ? `${edited} ` : edited;
+    }
+    const hash = sha256(prev + payload);
+    await db.receipt.update({ where: { seq: r.seq }, data: { payload, prevHash: prev, hash, signature: signPayload({ hash }) } });
+    prev = hash;
+  }
+  return { seq: target.seq, rewritten: tail.length, backup };
 }
 
 const ANCHOR_ABI = [
@@ -109,9 +197,12 @@ export async function anchorHead() {
       functionName: "anchor",
       args: [`0x${head}`, BigInt(seq)],
     });
+    const { createPublicClient } = await import("viem");
+    await createPublicClient({ chain: polygonAmoy, transport: http(ANCHOR_RPC_URL) }).waitForTransactionReceipt({ hash: txHash as `0x${string}`, timeout: 60_000 });
     network = "polygon-amoy";
   }
   const row = await db.anchor.create({ data: { seq, head, network, txHash } });
+  invalidateChainCache();
   bus.emit("anchor", row);
   return row;
 }

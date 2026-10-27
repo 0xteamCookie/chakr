@@ -6,6 +6,7 @@ import type {
 import { CONF_RANK, PRESETS, VIS_RANK } from "./types.js";
 import { checkContract, compileContract, issueContract, widenContract } from "./contract.js";
 import { LabelStore, stringify } from "./provenance.js";
+import { display } from "./normalize.js";
 import { DEFAULT_POLICY, evaluatePolicy, maxTier, raiseTier, type Policy } from "./policy.js";
 import { injectionScore } from "./detector.js";
 import { causalCheck, type ReplayFn } from "./causal.js";
@@ -80,7 +81,7 @@ export class Shield {
       ? spec.outputConfidentiality(call.args)
       : spec?.outputConfidentiality ?? "PRIVATE";
     const integrity = spec?.outputIntegrity ?? "UNTRUSTED";
-    s.store.add(`${call.tool}#${call.id}`, text, integrity, conf);
+    s.store.add(`${display(call.tool, 40)}#${display(call.id, 24)}`, text, integrity, conf);
     if (s.settings.detector && integrity === "UNTRUSTED") {
       s.maxInjection = Math.max(s.maxInjection, await injectionScore(text));
     }
@@ -100,6 +101,7 @@ export class Shield {
     let causal: CausalResult | undefined;
 
     const finish = async (v: Verdict): Promise<Decision> => {
+      if (v === "ESCALATE" && spec?.effect === "write") reasons.push(...this.reviewerNotes(s, spec, call, labels));
       const d: Decision = {
         verdict: v, risk, reasons, labels, layers, injectionScore: s.maxInjection, causal,
         latencyMs: Number((performance.now() - t0).toFixed(3)),
@@ -108,13 +110,19 @@ export class Shield {
     };
 
     if (!spec) {
-      reasons.push(`unknown tool ${call.tool}`);
+      reasons.push(`unknown tool ${display(call.tool)}`);
       return finish("DENY");
     }
 
     // ---- layer 1: intent contract
     if (st.contract) {
-      const c = checkContract(s.contract, call.tool, call.args);
+      // An argument the tool never declared is how a second, unchecked value (a "repository" next to the
+      // scoped "repo", "Repo" next to "repo") reaches a backend that prefers it. Fail closed.
+      const declared = new Set([...Object.keys(spec.params), ...(spec.controlArgs ?? []), ...Object.keys(spec.sinkArgs ?? {})]);
+      const stray = declared.size ? Object.keys(call.args).filter((k) => !declared.has(k)) : [];
+      const c = stray.length
+        ? { ok: false, detail: `undeclared argument${stray.length > 1 ? "s" : ""} ${stray.map((k) => `'${display(k, 30)}'`).join(", ")} for ${call.tool}` }
+        : checkContract(s.contract, call.tool, call.args);
       layers.push({ layer: "contract", outcome: c.ok ? "pass" : "block", detail: c.detail });
       if (!c.ok) {
         reasons.push(`contract: ${c.detail}`);
@@ -204,18 +212,45 @@ export class Shield {
     return finish(verdict ?? "ALLOW");
   }
 
+  /** What the approval card shows besides the raw arguments: the focus args and the recommendation. */
+  card(s: Session, call: ToolCall, d: Decision): { focus: string[]; recommended: "approve" | "deny" } {
+    const focus = this.tools.get(call.tool)?.controlArgs ?? [];
+    const suspect = d.labels.some((l) => focus.includes(l.arg) && (l.integrity === "UNTRUSTED" || this.unexplained(s, call, l)));
+    return { focus, recommended: suspect ? "deny" : "approve" };
+  }
+
+  /** A control argument the agent produced from nothing it was given, while it had read untrusted text. */
+  private unexplained(s: Session, call: ToolCall, l: ArgLabel): boolean {
+    return s.store.hasUntrusted && l.sources.length === 0 && stringify(call.args[l.arg]).trim().length >= 4;
+  }
+
+  /** Facts a reviewer needs that the verdict alone does not say: untrusted or untraceable arguments. */
+  private reviewerNotes(s: Session, spec: ToolSpec, call: ToolCall, labels: ArgLabel[]): string[] {
+    const control = new Set(spec.controlArgs ?? []);
+    const notes: string[] = [];
+    for (const l of labels) {
+      if (control.has(l.arg) && this.unexplained(s, call, l)) {
+        notes.push(`provenance: '${display(l.arg, 30)}' cannot be traced to the user's request or to anything the agent read`);
+      } else if (!control.has(l.arg) && l.integrity === "UNTRUSTED" && l.sources.length) {
+        const text = `provenance: '${display(l.arg, 30)}' came from ${l.sources.join(", ")}`;
+        if (!notes.includes(text)) notes.push(text);
+      }
+    }
+    return notes;
+  }
+
   private async conclude(s: Session, call: ToolCall, d: Decision, opts: CheckOptions): Promise<Decision> {
     let final = d;
     let reviewer: string | null = null;
     if (d.verdict === "ESCALATE" && opts.escalation !== "return") {
       bus.emit("decision", { sessionId: s.id, call, decision: d, pending: true });
+      const card = this.card(s, call, d);
       const outcome = opts.review
         ? { approved: await opts.review(d, call), by: "human" as const, note: "auto-review" }
         : await requestApproval({
         sessionId: s.id, agentId: s.agentId, task: s.task, tool: call.tool, args: call.args,
         reasons: d.reasons, labels: d.labels, causal: d.causal ?? null,
-        focus: this.tools.get(call.tool)?.controlArgs ?? [],
-        recommended: d.labels.some((l) => l.integrity === "UNTRUSTED" && (this.tools.get(call.tool)?.controlArgs ?? []).includes(l.arg)) ? "deny" : "approve",
+        focus: card.focus, recommended: card.recommended,
       }, s.settings.approvalTimeoutMs);
       reviewer = outcome.by === "timeout" ? "timeout" : `human: ${outcome.approved ? "approved" : "denied"}`;
       final = { ...d, verdict: outcome.approved ? "ALLOW" : "DENY",

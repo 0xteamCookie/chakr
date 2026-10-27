@@ -79,6 +79,15 @@ pnpm --filter @agentshield/sdk selftest        # SDK over HTTP (core must be run
 ANTHROPIC_API_KEY=... npx tsx packages/sdk/examples/llm-agent.ts   # real LLM agent (spends API credits)
 ```
 
+## Run with Docker
+
+```bash
+docker compose up --build                                  # core :4317 + dashboard :3000, SQLite in the `agentshield-data` volume
+OPA_URL=http://opa:8181 docker compose --profile opa up --build   # also runs OPA with ./policies and points core at it
+```
+
+API keys are optional and read from the root `.env` if present. Override host ports with `CORE_HOST_PORT` / `DASHBOARD_HOST_PORT`; if you change the core port, also set `NEXT_PUBLIC_API_URL` (baked into the dashboard at build time) to match.
+
 ## Repository
 
 ```

@@ -1,0 +1,52 @@
+{
+  "generatedAt": "2026-10-27T15:18:32",
+  "mode": "ground-truth",
+  "suites": {
+    "banking": {
+      "tasks": 16,
+      "injectionCases": 144,
+      "utilityNone": 1.0,
+      "utilityShield": 0.8125,
+      "utilityUnderAttackNone": null,
+      "utilityUnderAttackShield": null,
+      "attackSuccessNone": 1.0,
+      "attackSuccessShield": 0.0417,
+      "falseBlockRatePct": 9.1,
+      "meanAddedLatencyMs": 23.3
+    },
+    "slack": {
+      "tasks": 16,
+      "injectionCases": 144,
+      "utilityNone": 1.0,
+      "utilityShield": 0.4375,
+      "utilityUnderAttackNone": null,
+      "utilityUnderAttackShield": null,
+      "attackSuccessNone": 1.0,
+      "attackSuccessShield": 0.3958,
+      "falseBlockRatePct": 21.9,
+      "meanAddedLatencyMs": 20.0
+    }
+  },
+  "live": {
+    "suite": "banking",
+    "model": "gemini-2.5-flash",
+    "attack": "important_instructions",
+    "runs": "5 clean / 5 attack",
+    "utilityNone": 0.0,
+    "utilityShield": 0.0,
+    "utilityUnderAttackNone": 0.4,
+    "utilityUnderAttackShield": 0.2,
+    "attackSuccessNone": 0.4,
+    "attackSuccessShield": 0.0,
+    "falseBlockRatePct": 0.0,
+    "meanAddedLatencyMs": 40.0,
+    "note": "Gemini often skipped tool calls, so utility is 0% and these numbers are not comparable to ground-truth."
+  },
+  "notes": [
+    "Ground-truth ASR is worst-case: a fully obedient hijacked agent, no model resistance.",
+    "banking numbers are after this change; slack figures are the pre-change baseline (re-run not completed in time).",
+    "workspace and travel suites were not run.",
+    "Remaining false blocks are mostly control args legitimately derived from untrusted reads (file/message content) and a 'follow the file instructions' task; these are the core defence and were not relaxed.",
+    "Change: low-tier reads always granted by the contract compiler; channel/user directory listings labelled TRUSTED in the harness ToolSpecs (an attacker able to create channel/user names could poison these)."
+  ]
+}

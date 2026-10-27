@@ -20,8 +20,8 @@ export function Logo() {
 }
 
 const LINKS = [
-  { href: "/#how", label: "How it works" },
-  { href: "/console", label: "Console" },
+  { href: "/pitch", label: "Pitch" },
+  { href: "/live", label: "Live agent" },
   { href: "/audit", label: "Audit" },
   { href: "/evaluation", label: "Evaluation" },
 ];

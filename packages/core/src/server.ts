@@ -1,3 +1,4 @@
+import "./env.js";
 import express, { type Request, type Response } from "express";
 import cors from "cors";
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
@@ -9,12 +10,14 @@ import { SCENARIOS, scenario, allScenarioTools } from "./scenarios/index.js";
 import { runScenario, runs, type RunResult } from "./runner.js";
 import { bus } from "./events.js";
 import { decide, pendingApprovals } from "./approvals.js";
-import { anchorHead, startAnchorLoop, verifyChain } from "./receipts.js";
+import { anchorHead, startAnchorLoop, verifyChain, rewriteHistory } from "./receipts.js";
 import { db } from "./db.js";
 import { DATA_DIR, signingKey } from "./crypto.js";
 import { compileRules } from "./contract.js";
 import { currentDetector, injectionScore } from "./detector.js";
 import { runInjecAgentEval } from "./eval/injecagent.js";
+import { runAdaptiveEval } from "./eval/adaptive.js";
+import { registerLive } from "./live.js";
 
 const PORT = Number(process.env.PORT ?? 4317);
 const shield = new Shield(allScenarioTools());
@@ -93,6 +96,9 @@ app.get("/api/runs/:id", wrap((req, res) => {
   return r;
 }));
 
+// ---------------------------------------------------------------- live agent (real model)
+registerLive(app);
+
 // ---------------------------------------------------------------- approvals
 app.get("/api/approvals", wrap(() => pendingApprovals()));
 app.get("/api/approvals/history", wrap(async () => {
@@ -127,10 +133,24 @@ app.post("/api/demo/tamper", wrap(async (_req, res) => {
   await db.receipt.update({ where: { seq: target.seq }, data: { payload: edited === target.payload ? `${edited} ` : edited } });
   return { seq: target.seq, change: "verdict DENY changed to ALLOW in the stored payload" };
 }));
+// Demo only: edit a receipt AND recompute every later hash and signature, so a database-only check passes.
+let rewritten: { seq: number; payload: string; prevHash: string; hash: string; signature: string }[] | null = null;
+app.post("/api/demo/rewrite", wrap(async (_req, res) => {
+  if (rewritten) return res.status(400).json({ error: "history already rewritten: restore first" });
+  const r = await rewriteHistory();
+  if (!r) return res.status(400).json({ error: "no receipts yet: run a scenario first" });
+  rewritten = r.backup;
+  return { seq: r.seq, rewritten: r.rewritten, change: "verdict DENY changed to ALLOW and all later hashes recomputed" };
+}));
 app.post("/api/demo/restore", wrap(async () => {
   for (const [seq, payload] of tampered) await db.receipt.update({ where: { seq }, data: { payload } });
-  const n = tampered.size;
+  let n = tampered.size;
   tampered.clear();
+  if (rewritten) {
+    for (const b of rewritten) await db.receipt.update({ where: { seq: b.seq }, data: { payload: b.payload, prevHash: b.prevHash, hash: b.hash, signature: b.signature } });
+    n += rewritten.length;
+    rewritten = null;
+  }
   return { restored: n };
 }));
 
@@ -158,6 +178,14 @@ app.get("/api/stats", wrap(async () => {
 // ---------------------------------------------------------------- evaluation
 const evalFile = join(DATA_DIR, "eval-results.json");
 app.get("/api/eval", wrap(() => (existsSync(evalFile) ? JSON.parse(readFileSync(evalFile, "utf8")) : null)));
+const adaptiveFile = join(DATA_DIR, "adaptive-results.json");
+app.get("/api/eval/adaptive", wrap(() => (existsSync(adaptiveFile) ? JSON.parse(readFileSync(adaptiveFile, "utf8")) : null)));
+app.post("/api/eval/adaptive", wrap(async () => {
+  const report = await runAdaptiveEval();
+  mkdirSync(DATA_DIR, { recursive: true });
+  writeFileSync(adaptiveFile, JSON.stringify(report, null, 2));
+  return report;
+}));
 // real-model runs (pnpm eval:llm); per-case results are stripped to keep the response small
 app.get("/api/eval/llm", wrap(() => {
   const load = (setting: string) => {

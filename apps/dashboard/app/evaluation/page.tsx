@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { post, useLive, type EvalReport, type LlmEvalSummary } from "@/lib/api";
+import { post, useLive, type EvalReport, type AdaptiveReport, type LlmEvalSummary } from "@/lib/api";
 import { Button, Card, CardHead, Eyebrow, Kpi } from "@/components/ui";
 import { GroupedBars } from "@/components/charts";
+import { StackedBars } from "@/components/adaptive";
 import { CountUp, Reveal } from "@/components/motion";
 
 const BLUE = "#2b4bf2";
@@ -19,7 +20,23 @@ export default function Evaluation() {
     await reload();
     setBusy(false);
   };
-  const ev = data;
+  const ad = useLive<AdaptiveReport | null>("/api/eval/adaptive", [], 60_000);
+  const [adBusy, setAdBusy] = useState(false);
+  const rerunAd = async () => {
+    setAdBusy(true);
+    await post("/api/eval/adaptive", {}).catch(() => null);
+    await ad.reload();
+    setAdBusy(false);
+  };
+  const adr = ad.data && Array.isArray(ad.data.variants) ? ad.data : null;
+  const adHit = adr?.variants.filter((v) => v.success) ?? [];
+  const adIssue = new Map((adr?.known ?? []).map((k) => [k.id, k.issue]));
+  const adNames: Record<string, string> = {
+    obfuscation: "Obfuscation", "contract-spoofing": "Contract spoofing",
+    "approval-social-engineering": "Approval social engineering", "allowed-action-abuse": "Abuse of allowed actions",
+  };
+  const sum = (k: "blocked" | "escalated" | "executed") => adr?.categories.reduce((a, c) => a + c[k], 0) ?? 0;
+  const ev = data && typeof data === "object" && data.cases && typeof data.cases.total === "number" ? data : null;
   const cfg = ev?.configs ?? [];
   const stress = new Map((ev?.stress ?? []).map((s) => [s.key.replace("-overlap", ""), s]));
   const rows = cfg.filter((c) => c.key !== "none");
@@ -118,6 +135,66 @@ export default function Evaluation() {
           </Card></Reveal>
         </>
       )}
+
+      <section className="mt-16">
+        <Eyebrow>Red team · adaptive attack suite</Eyebrow>
+        <div className="mt-4 flex flex-wrap items-end justify-between gap-4">
+          <h2 className="font-display max-w-[820px] text-[34px] font-extrabold leading-[1.05]">Adaptive attack suite</h2>
+          <Button variant="light" onClick={rerunAd} disabled={adBusy}>{adBusy ? "Running…" : "Re-run adaptive suite"}</Button>
+        </div>
+        <p className="mt-4 max-w-[860px] text-[16px] leading-relaxed text-ink-2">
+          Attacks written against what AgentShield is known to do: obfuscation it does not decode, contract values it normalises,
+          approval cards filled with attacker text, and permitted actions with steered arguments. The agent is fully compromised;
+          everything else is the real engine.
+        </p>
+        {ad.error && <p className="mt-4 text-red">{ad.error}</p>}
+        {!adr && !ad.error && (
+          <Card className="mt-6 p-6"><p>No adaptive results yet. Press <b>Re-run adaptive suite</b> (takes a few seconds).</p></Card>
+        )}
+        {adr && (
+          <>
+            <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              <Kpi label="Attack variants" value={<CountUp value={adr.variants.length} />} note={`${adr.categories.length} categories`} />
+              <Kpi label="Blocked" value={<CountUp value={sum("blocked")} />} tone="blue" note="denied outright" />
+              <Kpi label="Escalated to a human" value={<CountUp value={sum("escalated")} />} note="held for approval" />
+              <Kpi label="Executed" value={<CountUp value={sum("executed")} />} tone="orange" note={`${adHit.length} listed below as known limits`} />
+            </div>
+            <Card className="mt-6 p-6">
+              <CardHead title="Outcome by attack category" sub="Each variant is run against the full shield. Blue is stopped, light blue waits for a person, orange ran." />
+              <StackedBars rows={adr.categories.map((c) => ({ name: adNames[c.category] ?? c.category, blocked: c.blocked, escalated: c.escalated, executed: c.executed }))} />
+            </Card>
+            <Reveal><Card className="mt-6 p-6">
+              <CardHead title="Known limits" sub="We publish what still gets through. These are documented boundaries of the design, each with the reason, not hidden failures." />
+              {adHit.length === 0 ? <p className="text-[14px] text-ink-2">Every variant was blocked or escalated in this run.</p> : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-[13.5px]">
+                    <thead className="text-[11.5px] uppercase tracking-wider text-muted">
+                      <tr className="border-b border-line">
+                        <th className="py-2 pr-4 font-medium">Variant</th><th className="py-2 pr-4 font-medium">Category</th>
+                        <th className="py-2 pr-4 font-medium">Outcome</th><th className="py-2 pr-4 font-medium">Why it is a limit</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {adHit.map((v) => (
+                        <tr key={v.id} className="border-b border-line/70 align-top">
+                          <td className="py-2.5 pr-4 font-medium">{v.name}</td>
+                          <td className="py-2.5 pr-4 text-ink-2">{adNames[v.category] ?? v.category}</td>
+                          <td className="py-2.5 pr-4 font-mono">{v.outcome}</td>
+                          <td className="py-2.5 pr-4 text-ink-2">{v.known ?? adIssue.get(v.id) ?? (v.misled ? `Approval card could mislead: ${v.misled}` : "Under review")}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+              <p className="mt-4 text-[12.5px] text-muted">
+                {adr.bypasses.length ? `Unexplained bypasses: ${adr.bypasses.join(", ")}. ` : "No unexplained bypasses. "}
+                Generated {new Date(adr.generatedAt).toLocaleString()} in {adr.durationMs} ms.
+              </p>
+            </Card></Reveal>
+          </>
+        )}
+      </section>
     </div>
   );
 }
