@@ -97,6 +97,21 @@ async function readOnchain() {
 
 const onchainConfigured = () => !!(process.env.ANCHOR_RPC_URL && process.env.ANCHOR_CONTRACT);
 
+async function onchainInfo(hashAt: Map<number, string>): Promise<OnchainInfo | undefined> {
+  if (!onchainConfigured()) return undefined;
+  const contract = process.env.ANCHOR_CONTRACT!;
+  const base = { network: "polygon-amoy", contract, explorerUrl: `https://amoy.polygonscan.com/address/${contract}` };
+  try {
+    const c = await readOnchain();
+    if (c.seq === 0 && (c.head === GENESIS || c.head === "")) return { ...base, status: "empty" };
+    return { ...base, status: "ok", seq: c.seq, head: c.head, matches: hashAt.get(c.seq) === c.head };
+  } catch (e) {
+    return { ...base, status: "unreachable", error: (e as Error).message.split("\n")[0].slice(0, 160) };
+  }
+}
+
+const onchainField = async (h: Map<number, string>) => { const o = await onchainInfo(h); return o ? { onchain: o } : {}; };
+
 export async function verifyChain(): Promise<VerifyReport> {
   const rows = await db.receipt.findMany({ orderBy: { seq: "asc" } });
   let prev = GENESIS;
@@ -104,10 +119,10 @@ export async function verifyChain(): Promise<VerifyReport> {
   for (const r of rows) {
     const expect = sha256(prev + r.payload);
     if (r.prevHash !== prev || r.hash !== expect) {
-      return { ok: false, count: rows.length, head: prev, brokenAt: r.seq, problem: "hash mismatch: entry was altered or removed", anchor: null };
+      return { ok: false, count: rows.length, head: prev, brokenAt: r.seq, problem: "hash mismatch: entry was altered or removed", anchor: null, ...await onchainField(hashAt) };
     }
     if (!verifyPayload({ hash: r.hash }, r.signature)) {
-      return { ok: false, count: rows.length, head: prev, brokenAt: r.seq, problem: "signature does not verify", anchor: null };
+      return { ok: false, count: rows.length, head: prev, brokenAt: r.seq, problem: "signature does not verify", anchor: null, ...await onchainField(hashAt) };
     }
     hashAt.set(r.seq, r.hash);
     prev = r.hash;
@@ -120,23 +135,8 @@ export async function verifyChain(): Promise<VerifyReport> {
   let problem: string | null = ok ? null : "chain differs from the anchored head";
   let brokenAt: number | null = null;
 
-  let onchain: OnchainInfo | undefined;
-  if (onchainConfigured()) {
-    const contract = process.env.ANCHOR_CONTRACT!;
-    const base = { network: "polygon-amoy", contract, explorerUrl: `https://amoy.polygonscan.com/address/${contract}` };
-    try {
-      const c = await readOnchain();
-      if (c.seq === 0 && (c.head === GENESIS || c.head === "")) {
-        onchain = { ...base, status: "empty" };
-      } else {
-        const matches = hashAt.get(c.seq) === c.head;
-        onchain = { ...base, status: "ok", seq: c.seq, head: c.head, matches };
-        if (!matches) { ok = false; brokenAt = c.seq; problem = "chain differs from the head anchored on-chain"; }
-      }
-    } catch (e) {
-      onchain = { ...base, status: "unreachable", error: (e as Error).message.split("\n")[0].slice(0, 160) };
-    }
-  }
+  const onchain = await onchainInfo(hashAt);
+  if (onchain?.status === "ok" && !onchain.matches) { ok = false; brokenAt = onchain.seq ?? null; problem = "chain differs from the head anchored on-chain"; }
   return { ok, count: rows.length, head: prev, brokenAt, problem, anchor, ...(onchain ? { onchain } : {}) };
 }
 
