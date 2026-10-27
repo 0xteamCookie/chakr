@@ -1,0 +1,24 @@
+{
+  "name": "@agentshield/sdk",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "selftest": "tsx examples/selftest.ts"
+  },
+  "devDependencies": {
+    "@ai-sdk/anthropic": "^4.0.89",
+    "@ai-sdk/google": "^4.0.106",
+    "@ai-sdk/openai": "^4.0.103",
+    "@types/node": "^20.19.43",
+    "ai": "^7.0.154",
+    "tsx": "^4.23.15",
+    "typescript": "~5.9.3",
+    "zod": "^4.6.7"
+  }
+}

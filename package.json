@@ -1,0 +1,17 @@
+{
+  "name": "agentshield",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Intent-bound, provenance-aware execution control for AI agents",
+  "scripts": {
+    "dev": "pnpm --parallel --filter @agentshield/core --filter @agentshield/dashboard dev",
+    "dev:core": "pnpm --filter @agentshield/core dev",
+    "dev:dashboard": "pnpm --filter @agentshield/dashboard dev",
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "typecheck": "pnpm -r typecheck",
+    "eval": "pnpm --filter @agentshield/core eval",
+    "eval:fetch": "bash eval/fetch-injecagent.sh"
+  },
+  "packageManager": "pnpm@10"
+}

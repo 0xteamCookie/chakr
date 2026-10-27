@@ -1,0 +1,49 @@
+// SQLite by default so the project runs with zero setup.
+// For production, switch the provider to "postgresql" and point DATABASE_URL at Postgres.
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+/// One signed, hash-chained receipt per shield decision. Append-only.
+model Receipt {
+  seq       Int      @id @default(autoincrement())
+  sessionId String
+  tool      String
+  verdict   String
+  payload   String
+  prevHash  String
+  hash      String   @unique
+  signature String
+  createdAt DateTime @default(now())
+
+  @@index([sessionId])
+}
+
+/// Periodic commitment of the chain head, to a public chain when configured.
+model Anchor {
+  id        Int      @id @default(autoincrement())
+  seq       Int
+  head      String
+  network   String
+  txHash    String?
+  createdAt DateTime @default(now())
+}
+
+model Approval {
+  id        String    @id
+  sessionId String
+  tool      String
+  args      String
+  reasons   String
+  context   String
+  status    String
+  decidedBy String?
+  note      String?
+  createdAt DateTime  @default(now())
+  decidedAt DateTime?
+}
