@@ -1,0 +1,15 @@
+**/node_modules
+**/.next
+**/dist
+**/.data
+**/*.db
+**/*.db-journal
+**/tsconfig.tsbuildinfo
+.git
+.env
+.env.*
+!.env.example
+eval/data
+docs
+python
+contracts

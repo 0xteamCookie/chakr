@@ -1,0 +1,43 @@
+# docker compose up --build                 core :4317 + dashboard :3000
+# OPA_URL=http://opa:8181 docker compose --profile opa up --build   also runs OPA, core uses it
+name: agentshield
+services:
+  core:
+    build: { context: ., dockerfile: docker/core.Dockerfile }
+    ports: ["${CORE_HOST_PORT:-4317}:4317"]
+    env_file:
+      - { path: .env, required: false }   # optional API keys etc.
+    environment:
+      PORT: "4317"
+      AGENTSHIELD_DATA_DIR: /data
+      DATABASE_URL: file:/data/agentshield.db
+      OPA_URL: ${OPA_URL:-}                # empty = built-in policy; see opa profile
+    volumes: ["agentshield-data:/data"]
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:4317/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    restart: unless-stopped
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: docker/dashboard.Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4317}
+    ports: ["${DASHBOARD_HOST_PORT:-3000}:3000"]
+    depends_on:
+      core: { condition: service_healthy }
+    restart: unless-stopped
+
+  opa:
+    profiles: [opa]
+    image: openpolicyagent/opa:latest
+    command: ["run", "--server", "--addr", ":8181", "/policies"]
+    volumes: ["./policies:/policies:ro"]
+    ports: ["8181:8181"]
+
+volumes:
+  agentshield-data:
