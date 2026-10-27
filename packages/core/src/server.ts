@@ -17,6 +17,7 @@ import { compileRules } from "./contract.js";
 import { currentDetector, injectionScore } from "./detector.js";
 import { runInjecAgentEval } from "./eval/injecagent.js";
 import { runAdaptiveEval } from "./eval/adaptive.js";
+import { registerLive } from "./live.js";
 
 const PORT = Number(process.env.PORT ?? 4317);
 const shield = new Shield(allScenarioTools());
@@ -94,6 +95,9 @@ app.get("/api/runs/:id", wrap((req, res) => {
   if (!r) return res.status(404).json({ error: "not found" });
   return r;
 }));
+
+// ---------------------------------------------------------------- live agent (real model)
+registerLive(app);
 
 // ---------------------------------------------------------------- approvals
 app.get("/api/approvals", wrap(() => pendingApprovals()));

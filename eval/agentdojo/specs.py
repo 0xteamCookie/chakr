@@ -49,6 +49,11 @@ DOMAIN_WORDS = {
     "travel": ["hotel", "restaurant", "car", "rental", "flight", "trip", "price", "rating", "review", "city", "travel"],
 }
 
+# Reads that enumerate identifiers (channel / user names) return system-of-record directory entries, not free text an
+# outsider can phrase as instructions, so their output is labelled TRUSTED. Free-text sources (messages, pages, files,
+# emails, transactions) stay UNTRUSTED. Caveat: an attacker who can create a channel/user name could poison this.
+DIRECTORY_TOKENS = {"channels", "users"}
+
 CONTROL_ARGS = {"recipient", "recipients", "iban", "to", "email", "emails", "cc", "bcc", "channel", "user", "users",
                 "url", "participants", "participant", "attachments"}
 CONTENT_ARGS = {"body", "message", "content", "text"}
@@ -101,7 +106,7 @@ def derive_spec(fn, app: str, domain_words: bool = True) -> ToolSpec:
         keywords=keywords,
         control_args=[p for p in params if p in CONTROL_ARGS] if effect == "write" else None,
         sink_args={p: sink_vis for p in params if p in CONTENT_ARGS} if effect == "write" else None,  # type: ignore[misc]
-        output_integrity="UNTRUSTED",
+        output_integrity="TRUSTED" if effect == "read" and DIRECTORY_TOKENS & set(toks) else "UNTRUSTED",
         output_confidentiality="PRIVATE",
         params={p: p for p in params},
     )

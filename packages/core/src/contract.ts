@@ -21,7 +21,7 @@ function hasWord(text: string, kw: string): boolean {
 /**
  * Deterministic compiler. It only ever sees the user's request and the tool catalogue.
  * A tool is granted when the request mentions one of its keywords. Writes need an
- * explicit action word; reads may also come along with an app the request names.
+ * explicit action word; low-tier reads are always granted (they have no sink).
  * Scope arguments are pinned to values that appear in the request.
  */
 export function compileRules(task: string, tools: ToolSpec[]): ContractRule[] {
@@ -30,7 +30,9 @@ export function compileRules(task: string, tools: ToolSpec[]): ContractRule[] {
   const rules: ContractRule[] = [];
   for (const tool of tools) {
     const keywordHit = tool.keywords.some((k) => hasWord(t, k));
-    const granted = tool.effect === "write" ? keywordHit : keywordHit || named.has(tool.app);
+    // Reads of the lowest tier are always grantable: without a write sink they cannot leak anything, and
+    // provenance, sink labels and the write grants below still guard every exfiltration or action path.
+    const granted = tool.effect === "write" ? keywordHit : keywordHit || named.has(tool.app) || tool.tier === "LOW";
     if (!granted) continue;
     const rule: ContractRule = { tool: tool.name };
     if (tool.scopeArg && SCOPE_PATTERNS[tool.scopeArg]) {
