@@ -49,12 +49,15 @@ export default function Audit() {
         <Kpi label="Anchor matches chain" value={v?.anchor ? (v.anchor.matches ? "Yes" : "No") : "n/a"} tone={v?.anchor?.matches === false ? "orange" : "ink"} note="recomputed on every check" />
       </div>
 
+      <OnchainCard v={v} last={anchors.data?.[0] ?? null} localHead={v?.anchor ? v.anchor.head : null} />
+
       <Card className="mt-6 p-6">
-        <CardHead title="Try to rewrite history" sub="The tamper demo edits one stored receipt (turns a DENY into an ALLOW) so you can watch verification fail. Restore puts it back."
+        <CardHead title="Try to rewrite history" sub="Simulate tampering edits one stored receipt (DENY becomes ALLOW) and the chain breaks. Rewrite history also recomputes every later hash, so a database-only check passes and only the on-chain anchor catches it. Restore puts everything back."
           right={
             <div className="flex flex-wrap gap-2">
               <Button variant="light" onClick={() => act("/api/anchor", (r) => `Anchored head at receipt #${r.seq} (${r.network}).`)}>Anchor now</Button>
               <Button variant="danger" onClick={() => act("/api/demo/tamper", (r) => `Tampered with receipt #${r.seq}: ${r.change}.`)}>Simulate tampering</Button>
+              <Button variant="danger" onClick={() => act("/api/demo/rewrite", (r) => `Rewrote history from receipt #${r.seq}: ${r.rewritten} hashes recomputed. ${r.change}.`)}>Rewrite history (recompute hashes)</Button>
               <Button variant="dark" onClick={() => act("/api/demo/restore", (r) => `Restored ${r.restored} receipt(s).`)}>Restore</Button>
             </div>
           } />
@@ -92,6 +95,36 @@ export default function Audit() {
         </div>
       </Card>
     </div>
+  );
+}
+
+function OnchainCard({ v, last, localHead }: { v: VerifyReport | null; last: Anchor | null; localHead: string | null }) {
+  const oc = v?.onchain;
+  const scan = "https://amoy.polygonscan.com";
+  const link = "font-mono text-[12.5px] text-blue underline break-all";
+  return (
+    <Card className="mt-6 p-6">
+      <CardHead title="Public anchor" sub="The chain head is written to a smart contract on Polygon Amoy. Verification reads it back from the blockchain, so editing our own database is not enough to hide a change." />
+      {!oc ? <p className="text-[13px] text-muted">On-chain anchoring is not configured; heads are anchored locally only.</p> : (
+        <dl className="grid gap-x-6 gap-y-3 text-[13px] sm:grid-cols-[160px_1fr]">
+          <dt className="text-muted">Network</dt><dd className="font-mono">{oc.network ?? "polygon-amoy"}</dd>
+          <dt className="text-muted">Contract</dt>
+          <dd>{oc.contract ? <a className={link} href={`${scan}/address/${oc.contract}`} target="_blank" rel="noreferrer">{oc.contract}</a> : "n/a"}</dd>
+          <dt className="text-muted">Last anchor tx</dt>
+          <dd>{last?.txHash ? <a className={link} href={`${scan}/tx/${last.txHash}`} target="_blank" rel="noreferrer">{last.txHash}</a> : <span className="text-muted">none yet</span>}</dd>
+          <dt className="text-muted">On-chain status</dt>
+          <dd>{oc.status === "unreachable" ? <span className="text-red">RPC unreachable, using the local anchor ({oc.error})</span>
+            : oc.status === "empty" ? "nothing anchored on-chain yet"
+            : oc.matches ? <span className="font-semibold">Matches the local chain at receipt #{oc.seq}</span>
+            : <span className="font-semibold text-red">Does NOT match the local chain at receipt #{oc.seq}</span>}</dd>
+          {oc.status === "ok" && <>
+            <dt className="text-muted">On-chain head</dt><dd className="font-mono text-[12px] break-all">{oc.head}</dd>
+            <dt className="text-muted">Local head{localHead ? "" : " at that receipt"}</dt>
+            <dd className={`font-mono text-[12px] break-all ${oc.matches ? "" : "text-red"}`}>{oc.matches ? oc.head : `differs (local head ${v?.head})`}</dd>
+          </>}
+        </dl>
+      )}
+    </Card>
   );
 }
 

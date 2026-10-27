@@ -54,6 +54,7 @@ export interface Receipt {
 export interface VerifyReport {
   ok: boolean; count: number; head: string; brokenAt: number | null; problem: string | null;
   anchor: { seq: number; head: string; network: string; txHash: string | null; matches: boolean } | null;
+  onchain?: { status: "ok" | "unreachable" | "empty"; network?: string; contract?: string; seq?: number; head?: string; matches?: boolean; explorerUrl?: string; error?: string };
 }
 export interface ConfigResult {
   key: string; label: string; description: string; attacks: number; executed: number; escalated: number; denied: number;
@@ -65,6 +66,13 @@ export interface EvalReport {
   obfuscation: { method: string; cases: number; tracedWith: number; tracedWithout: number }[];
   detector: { flagged: number; total: number; rate: number };
   latency: { p50: number; p95: number; max: number; checks: number }; generatedAt: string; durationMs: number;
+}
+
+export interface AdaptiveReport {
+  threatModel: string;
+  categories: { category: string; variants: number; blocked: number; escalated: number; executed: number; misled: number; succeeded: string[]; deterministicExecuted: number }[];
+  variants: { id: string; category: string; name: string; outcome: string; deterministic: string; layer: string; misled: string | null; success: boolean; known?: string }[];
+  bypasses: string[]; known: { id: string; issue: string }[]; generatedAt: string; durationMs: number;
 }
 
 export async function api<T>(path: string, init?: RequestInit): Promise<T> {
