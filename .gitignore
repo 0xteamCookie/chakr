@@ -11,3 +11,6 @@ eval/data/*.json
 .c.log
 .d.log
 .d2.log
+*.tsbuildinfo
+.playwright-mcp/
+.impeccable/

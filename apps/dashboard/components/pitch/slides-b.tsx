@@ -1,112 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { API } from "@/lib/api";
 import { Ic } from "./icons";
-import { Head, Tag, btnDark, btnLight, useStep, type SP } from "./shared";
+import { Head, Tag, btnDark, btnLight, type SP } from "./shared";
 import { MEASURED } from "./data";
-
-/* ------------------------------------------------------------ 6 provenance */
-const ADDR = "ops@acme-payroll.co";
-const hex = (s: string) => Array.from(s).map((c) => c.charCodeAt(0).toString(16)).join("");
-const DIS: { id: string; label: string; shown: string; how: string }[] = [
-  { id: "plain", label: "Plain", shown: ADDR, how: "no disguise" },
-  { id: "b64", label: "base64", shown: typeof btoa === "function" ? btoa(ADDR) : "b3BzQGFjbWUtcGF5cm9sbC5jbw==", how: "decode base64" },
-  { id: "hex", label: "hex", shown: hex(ADDR), how: "decode hex" },
-  { id: "look", label: "Lookalike", shown: "ops@acme-payrооl.co", how: "swap lookalike letters" },
-];
-export function S6({ active }: SP) {
-  const [d, setD] = useState(1);
-  const [stage, setStage] = useState(0);
-  useEffect(() => {
-    if (!active) return;
-    setStage(0);
-    const ts = [500, 1400, 2300].map((ms, k) => setTimeout(() => setStage(k + 1), ms));
-    return () => ts.forEach(clearTimeout);
-  }, [d, active]);
-  const dis = DIS[d];
-  return (
-    <div>
-      <Head title="Every value remembers where it came from." cap="Disguises don't hide it." />
-      <div className="mb-5 flex flex-wrap gap-2" role="group" aria-label="Disguise">
-        {DIS.map((x, k) => (
-          <button key={x.id} onClick={() => setD(k)} aria-pressed={d === k}
-            className={`rounded-full px-4 py-2 text-[15px] transition-colors ${d === k ? "bg-ink text-white" : "border border-line bg-white text-ink-2 hover:border-ink/30"}`}>{x.label}</button>
-        ))}
-      </div>
-      <div className="grid items-center gap-3 md:grid-cols-[1fr_auto_1fr]">
-        <div className="rounded-2xl border border-line bg-white p-4">
-          <div className="mb-2 flex items-center justify-between"><span className="flex items-center gap-2 text-[13px] text-muted"><Ic n="mail" size={16} />Email from a stranger</span><Tag tone="orange">untrusted</Tag></div>
-          <p className={`break-all rounded-lg px-2 py-2 font-mono text-[15px] transition-colors duration-500 ${stage >= 3 ? "bg-orange-soft text-orange" : "text-ink-2"}`}>{ADDR}</p>
-        </div>
-        <div className="grid place-items-center text-center text-[13px] text-ink-2">
-          <div className="flex rotate-90 items-center gap-1 md:rotate-0"><Ic n="link" size={22} className={stage >= 3 ? "text-orange" : "text-ink/25"} /></div>
-          <span className={`transition-opacity ${stage >= 2 ? "opacity-100" : "opacity-0"}`}>{dis.how}</span>
-        </div>
-        <div className="rounded-2xl border border-line bg-white p-4">
-          <div className="mb-2 flex items-center justify-between"><span className="flex items-center gap-2 text-[13px] text-muted"><Ic n="terminal" size={16} />Tool call</span>
-            {stage >= 3 ? <Tag tone="orange">untrusted</Tag> : <Tag tone="ink">checking</Tag>}</div>
-          <p className="font-mono text-[13px] text-ink-2">send_email(to:</p>
-          <p className={`break-all rounded-lg px-2 py-1.5 font-mono text-[15px] transition-colors duration-500 ${stage >= 3 ? "bg-orange-soft text-orange" : "bg-canvas"}`}>{stage >= 2 ? ADDR : dis.shown}</p>
-        </div>
-      </div>
-      <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3 rounded-2xl bg-white p-4 sm:p-5">
-        <span className="flex items-center gap-2 font-mono text-[14px]"><Ic n="key" size={20} className="text-ink" />.env <Tag tone="orange">secret</Tag></span>
-        <span className="flex items-center gap-2 text-orange"><Ic n="arrow" size={20} /><Ic n="x" size={20} /></span>
-        <span className="flex items-center gap-2 font-mono text-[14px]"><Ic n="globe" size={20} />post_to_web <Tag tone="ink">public</Tag></span>
-        <span className="text-[15px] font-medium text-ink">Secrets stay in.</span>
-        <span className="ml-auto flex items-center gap-3 text-[12.5px] text-ink-2"><span className="flex items-center gap-1.5"><i className="h-2.5 w-2.5 rounded-full bg-blue" />trusted</span><span className="flex items-center gap-1.5"><i className="h-2.5 w-2.5 rounded-full bg-orange" />untrusted</span></span>
-      </div>
-    </div>
-  );
-}
-
-/* ------------------------------------------------------------ 7 causal + approval */
-export function S7({ active }: SP) {
-  const s = useStep(3, 1800, active);
-  const [res, setRes] = useState<null | "approve" | "deny">(null);
-  return (
-    <div>
-      <Head title="Hide the task. Does it still happen?" cap="If yes, the task didn't cause it. A human decides." />
-      <div className="grid items-center gap-6 md:grid-cols-2">
-        <div className="space-y-3 rounded-[24px] border border-line bg-white p-5">
-          <Replay label="Task shown" call="make_payment" on={s >= 0} />
-          <Replay label="Task hidden" call="make_payment" on={s >= 1} />
-          <div className={`flex items-center gap-2 rounded-xl px-4 py-3 text-[15px] font-medium transition-all duration-500 ${s >= 2 ? "bg-orange-soft text-orange" : "bg-canvas text-muted"}`}>
-            <Ic n="gitbranch" size={20} />{s >= 2 ? "Same call. The task wasn't the cause." : "Comparing…"}
-          </div>
-        </div>
-        <div className="rounded-[24px] border border-line bg-white p-5 shadow-[0_8px_24px_-12px_rgb(11_13_18/0.15)]">
-          <div className="flex items-center justify-between"><span className="flex items-center gap-2 text-[15px] font-semibold"><Ic n="user" size={18} />Approval needed</span><Tag tone="orange">HIGH risk</Tag></div>
-          <p className="mt-3 font-mono text-[14px]">make_payment(to: &quot;9988&quot;, 48000)</p>
-          <p className="mt-2 text-[14px] text-ink-2">Why: not part of the task.</p>
-          <p className="mt-1 flex items-center gap-2 text-[14px] text-ink-2">Came from: <Ic n="mail" size={15} /> email, Invoice 4471 <Tag tone="orange">untrusted</Tag></p>
-          <div className="mt-4 min-h-12" aria-live="polite">
-            {res === null ? (
-              <div className="flex gap-2">
-                <button className={btnDark} onClick={() => setRes("approve")}>Approve</button>
-                <button className="rounded-full bg-orange px-5 py-2.5 text-[15px] font-medium text-white hover:opacity-90" onClick={() => setRes("deny")}>Deny</button>
-              </div>
-            ) : (
-              <div className="anim-fade-up flex flex-wrap items-center gap-3">
-                <span className={`flex items-center gap-2 font-medium ${res === "deny" ? "text-blue" : "text-amber"}`}>
-                  <Ic n={res === "deny" ? "shield" : "alert"} size={20} />{res === "deny" ? "Denied. Logged." : "Approved. Logged with your name."}
-                </span>
-                <button className={btnLight} onClick={() => setRes(null)}>Reset</button>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-const Replay = ({ label, call, on }: { label: string; call: string; on: boolean }) => (
-  <div className={`flex items-center justify-between gap-3 rounded-xl border border-line px-4 py-3 transition-opacity duration-500 ${on ? "opacity-100" : "opacity-30"}`}>
-    <span className="text-[14px] text-ink-2">{label}</span>
-    <span className="flex items-center gap-2 font-mono text-[13.5px]"><Ic n="bot" size={16} />{call}</span>
-  </div>
-);
 
 /* ------------------------------------------------------------ 8 chain */
 const h32 = (s: string) => {
@@ -228,7 +125,6 @@ export function S9({ live, active }: SP) {
             </div>
             <p className="mt-3 text-[14px]"><b>{ad.unexplained}</b> unexplained bypasses. <span className="text-amber">{ad.known} known limits</span>, published.</p>
           </div>
-          <AgentDojoSlot active={active} />
         </div>
       </div>
     </div>
@@ -237,33 +133,6 @@ export function S9({ live, active }: SP) {
 const Stat = ({ v, l }: { v: string; l: string }) => (
   <div className="rounded-2xl border border-line bg-white p-4"><div className="font-display text-[clamp(1.5rem,2.6vw,2.2rem)] font-bold leading-none text-blue">{v}</div><div className="mt-1 text-[13px] text-ink-2">{l}</div></div>
 );
-
-/* AGENTDOJO SLOT: shows only if GET /api/eval/agentdojo returns
-   { suite: string, tasks: number, attackSuccessBaseline: number, attackSuccessShielded: number, utility?: number } (percentages 0-100). */
-type Dojo = { suite?: string; tasks?: number; attackSuccessBaseline?: number; attackSuccessShielded?: number; utility?: number };
-function AgentDojoSlot({ active }: { active: boolean }) {
-  const [d, setD] = useState<Dojo | null>(null);
-  useEffect(() => {
-    if (!active) return;
-    const ctl = new AbortController();
-    const t = setTimeout(() => ctl.abort(), 2500);
-    fetch(`${API}/api/eval/agentdojo`, { signal: ctl.signal, cache: "no-store" })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((j) => setD(j && typeof j.attackSuccessShielded === "number" ? j : null))
-      .catch(() => setD(null))
-      .finally(() => clearTimeout(t));
-    return () => { ctl.abort(); clearTimeout(t); };
-  }, [active]);
-  if (!d) return null;
-  return (
-    <div className="rounded-[24px] border border-line bg-white p-5">
-      <div className="mb-3 text-[14px] font-medium">AgentDojo{d.suite ? `: ${d.suite}` : ""}{d.tasks ? ` (${d.tasks} tasks)` : ""}</div>
-      {typeof d.attackSuccessBaseline === "number" && <Bar label="No defence" pct={d.attackSuccessBaseline} color="#e2582b" />}
-      <div className="mt-2"><Bar label="AgentShield" pct={d.attackSuccessShielded!} color="#2b4bf2" /></div>
-      {typeof d.utility === "number" && <p className="mt-2 text-[13px] text-ink-2">Useful work still done: {d.utility}%</p>}
-    </div>
-  );
-}
 
 /* ------------------------------------------------------------ 10 close */
 export function S10(_: SP) {
