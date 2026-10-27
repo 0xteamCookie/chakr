@@ -8,9 +8,9 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "dev": "DATABASE_URL=file:../.data/agentshield.db prisma db push --skip-generate && tsx watch src/server.ts",
-    "start": "DATABASE_URL=file:../.data/agentshield.db prisma db push --skip-generate && tsx src/server.ts",
-    "db:push": "DATABASE_URL=file:../.data/agentshield.db prisma db push",
+    "dev": "cross-env DATABASE_URL=file:../.data/agentshield.db prisma db push --skip-generate && tsx watch src/server.ts",
+    "start": "cross-env DATABASE_URL=file:../.data/agentshield.db prisma db push --skip-generate && tsx src/server.ts",
+    "db:push": "cross-env DATABASE_URL=file:../.data/agentshield.db prisma db push",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "eval": "tsx src/eval/cli.ts",
@@ -33,6 +33,7 @@
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/node": "^20.19.43",
+    "cross-env": "^10.1.0",
     "prisma": "6.19.3",
     "tsx": "^4.23.15",
     "typescript": "^5.9.3",
