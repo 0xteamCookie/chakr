@@ -18,7 +18,7 @@ export default function Evaluation() {
     await reload();
     setBusy(false);
   };
-  const ev = data;
+  const ev = data && typeof data === "object" && data.cases && typeof data.cases.total === "number" ? data : null;
   const cfg = ev?.configs ?? [];
   const stress = new Map((ev?.stress ?? []).map((s) => [s.key.replace("-overlap", ""), s]));
   const rows = cfg.filter((c) => c.key !== "none");

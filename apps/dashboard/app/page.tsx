@@ -15,8 +15,10 @@ const STEPS = [
 
 export default function Home() {
   const { data: ev } = useLive<EvalReport | null>("/api/eval", [], 60_000);
-  const full = ev?.configs.find((c) => c.key === "full");
-  const none = ev?.configs.find((c) => c.key === "none");
+  const report = ev && Array.isArray(ev.configs) ? ev : null;
+  const configs = report?.configs ?? [];
+  const full = configs.find((c) => c.key === "full");
+  const none = configs.find((c) => c.key === "none");
   return (
     <>
       <section className="grid items-center gap-12 pt-10 lg:grid-cols-[1.1fr_1fr] lg:pt-16">
@@ -75,7 +77,7 @@ export default function Home() {
       <section className="pt-28">
         <Eyebrow>Measured, not promised</Eyebrow>
         <h2 className="font-display mt-4 text-[44px] font-extrabold leading-tight">
-          {ev ? `${ev.cases.total.toLocaleString()} real attacks, replayed` : "Real attacks, replayed"}
+          {report ? `${report.cases.total.toLocaleString()} real attacks, replayed` : "Real attacks, replayed"}
         </h2>
         <p className="mt-3 max-w-[760px] text-[17px] leading-relaxed text-ink-2">
           We replay every InjecAgent test case through the engine with a fully compromised agent that always tries the
@@ -85,7 +87,7 @@ export default function Home() {
           <Stat big={none ? `${none.asr}%` : "…"} label="attack success, no defence" tone="orange" />
           <Stat big={full ? `${full.asr}%` : "…"} label="attack success, AgentShield" tone="blue" />
           <Stat big={full ? `${full.falseBlockRate}%` : "…"} label="legitimate calls blocked" />
-          <Stat big={ev ? `${ev.latency.p50} ms` : "…"} label="median decision time" />
+          <Stat big={report ? `${report.latency.p50} ms` : "…"} label="median decision time" />
         </div>
         <Link href="/evaluation" className="mt-6 inline-block text-[15px] font-medium text-blue underline underline-offset-4">
           Full results, ablations and the harder stress test
