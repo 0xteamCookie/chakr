@@ -24,6 +24,7 @@ const LINKS = [
   { href: "/console", label: "Console" },
   { href: "/audit", label: "Audit" },
   { href: "/evaluation", label: "Evaluation" },
+  { href: "/pitch", label: "Pitch" },
 ];
 
 export function Nav() {
