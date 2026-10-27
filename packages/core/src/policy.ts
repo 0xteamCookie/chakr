@@ -4,6 +4,7 @@
 
 import type { Tier, ToolSpec } from "./types.js";
 import { stringify } from "./provenance.js";
+import { display } from "./normalize.js";
 
 export interface AgentPolicy {
   tiers?: Record<string, Tier>;
@@ -40,6 +41,12 @@ export const DEFAULT_POLICY: Policy = {
   },
 };
 
+/** 48000, "48,000", "₹48,000.50", "INR 48000". Anything else (1e9, 1.000.000, words) is null. */
+function parseAmount(s: string): number | null {
+  const m = /^\s*(?:[$€£₹]|inr|usd|eur|rs\.?)?\s*(\d{1,3}(?:,\d{2,3})+|\d+)(\.\d+)?\s*(?:inr|usd|eur)?\s*$/i.exec(s);
+  return m ? Number(m[1].replace(/,/g, "") + (m[2] ?? "")) : null;
+}
+
 function evaluateBuiltin(policy: Policy, agentId: string, spec: ToolSpec, args: Record<string, unknown>): PolicyResult {
   const p = { ...policy.agents.default, ...(policy.agents[agentId] ?? {}) };
   let tier = p.tiers?.[spec.name] ?? spec.tier;
@@ -56,8 +63,14 @@ function evaluateBuiltin(policy: Policy, agentId: string, spec: ToolSpec, args: 
     }
   }
   for (const [arg, max] of Object.entries(p.limits?.[spec.name] ?? {})) {
-    const n = Number(String(args[arg] ?? "").replace(/[^0-9.]/g, ""));
-    if (Number.isFinite(n) && n > max) {
+    if (args[arg] === undefined || args[arg] === null) continue;
+    const n = parseAmount(stringify(args[arg]));
+    if (n === null) {
+      // "1.000.000", "1e9", "one million": anything we cannot read as a plain number cannot be checked
+      verdict = verdict ?? "ESCALATE";
+      tier = maxTier(tier, "HIGH");
+      reasons.push(`policy: ${arg} "${display(args[arg], 40)}" is not a plain number, so the limit of ${max} cannot be checked`);
+    } else if (n > max) {
       verdict = verdict ?? "ESCALATE";
       tier = maxTier(tier, "HIGH");
       reasons.push(`policy: ${arg} ${n} is above the limit of ${max}`);

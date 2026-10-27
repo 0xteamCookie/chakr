@@ -358,7 +358,7 @@ const mailTools: ScenarioTool<MailState>[] = [
   {
     spec: { name: "email.send", app: "email", description: "Send an email", effect: "write", tier: "HIGH",
       keywords: ["send", "forward", "email"], scopeArg: "to", controlArgs: ["to"],
-      sinkArgs: { body: (a) => (String(a.to).toLowerCase().endsWith("@teamcookie.dev") ? "INTERNAL" : "PUBLIC") },
+      sinkArgs: (() => { const v = (a: Record<string, unknown>) => (String(a.to).toLowerCase().endsWith("@teamcookie.dev") ? "INTERNAL" as const : "PUBLIC" as const); return { body: v, subject: v }; })(),
       params: { to: "address", subject: "subject", body: "text" } },
     run: (a, s) => {
       s.sent.push({ to: a.to, subject: a.subject, body: a.body });

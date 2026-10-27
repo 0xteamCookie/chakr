@@ -149,6 +149,10 @@ async function runConfig(cases: Case[], specs: ToolSpec[], o: RunOpts, latencies
 
     // the legitimate call the user asked for
     const benign = { id: "u1", tool: userTool, args: parseParams(c["Tool Parameters"]) };
+    // tools.json lists nested parameters (date_range) as one name, but the dataset flattens them (start_date,
+    // end_date); the app's real schema declares those fields, so declare them rather than count a false block
+    const userSpec = specs.find((s) => s.name === userTool);
+    if (userSpec) for (const k of Object.keys(benign.args)) userSpec.params[k] ??= k;
     const t0 = performance.now();
     const bd = await shield.check(session.id, benign, { escalation: "return", record: false });
     latencies.push(performance.now() - t0);

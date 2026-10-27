@@ -29,6 +29,7 @@ export function salientTokens(text: string): Set<string> {
 const MIN_LEN = 4;
 const FUZZY_MIN_LEN = 40;
 const FUZZY_THRESHOLD = 0.35;
+const SEAM = 160;
 
 export function stringify(v: unknown): string {
   if (typeof v === "string") return v;
@@ -99,22 +100,46 @@ export class LabelStore {
         via = "fuzzy overlap";
       }
       if (!via && v.length > MIN_LEN) {
-        for (const tok of seg.tokens) {
-          if (tok.length < v.length && v.includes(tok)) {
-            via = `contains copied value ${tok.length > 24 ? tok.slice(0, 24) + "..." : tok}`;
-            break;
+        // a distinctive token of the segment copied into the value, even if the value was then re-encoded
+        outer: for (const form of valueForms) {
+          for (const tok of seg.tokens) {
+            if (tok.length < form.length && form.includes(tok)) {
+              via = `contains copied value ${tok.length > 24 ? tok.slice(0, 24) + "..." : tok}${form === v ? "" : " (value encoded)"}`;
+              break outer;
+            }
           }
         }
       }
       if (via) hits.push({ seg, via });
     }
+    // a value split across two consecutive untrusted results ("evil@" then "mail.io") appears in neither alone
+    if (this.deep && !hits.some((h) => h.seg.integrity === "UNTRUSTED")) {
+      const untrusted = this.segments.filter((x) => x.integrity === "UNTRUSTED");
+      for (let i = 0; i + 1 < untrusted.length; i++) {
+        const a = untrusted[i];
+        const b = untrusted[i + 1];
+        const seam = a.variants[0].text.slice(-SEAM) + b.variants[0].text.slice(0, SEAM);
+        if (valueForms.some((f) => f.length >= MIN_LEN && seam.includes(f))) {
+          hits.push({ seg: a, via: "spans two tool results" }, { seg: b, via: "spans two tool results" });
+          break;
+        }
+      }
+    }
     if (!hits.length) return result;
 
-    const inTrusted = hits.some((h) => h.seg.integrity === "TRUSTED" && (h.via === "plain" || h.via.startsWith("contains")));
+    // "plain" only counts as the user's own text when the characters really are there: a value that
+    // matches only after Unicode folding (Cyrillic o, zero-width, fullwidth) is a lookalike, not a copy
+    const literal = raw.trim().toLowerCase();
+    const exact = (seg: Segment) => seg.raw.toLowerCase().includes(literal);
+    const inTrusted = hits.some((h) => h.seg.integrity === "TRUSTED" && (h.via.startsWith("contains") || (h.via === "plain" && exact(h.seg))));
+    const lookalike = !inTrusted && hits.some((h) => h.seg.integrity === "TRUSTED" && h.via === "plain");
     const untrusted = hits.filter((h) => h.seg.integrity === "UNTRUSTED");
     if (untrusted.length && !inTrusted) {
       result.integrity = "UNTRUSTED";
       result.via = untrusted[0].via;
+    } else if (lookalike) {
+      result.integrity = "UNTRUSTED";
+      result.via = "lookalike of trusted text (homoglyph, zero-width or width variant)";
     }
     for (const h of hits) {
       if (CONF_RANK[h.seg.confidentiality] > CONF_RANK[result.confidentiality]) {

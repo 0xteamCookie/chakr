@@ -14,8 +14,10 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "eval": "tsx src/eval/cli.ts",
+    "eval:adaptive": "tsx src/eval/cli-adaptive.ts",
     "postinstall": "prisma generate",
-    "eval:llm": "tsx src/eval/cli-llm.ts"
+    "eval:llm": "tsx src/eval/cli-llm.ts",
+    "deploy:anchor": "tsx --env-file=../../.env scripts/deploy-anchor.ts"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^4.0.0",
@@ -35,6 +37,7 @@
     "@types/node": "^20.19.43",
     "cross-env": "^10.1.0",
     "prisma": "6.19.3",
+    "solc": "^0.8.38",
     "tsx": "^4.23.15",
     "typescript": "^5.9.3",
     "vitest": "^3.2.7"

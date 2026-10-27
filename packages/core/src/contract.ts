@@ -3,7 +3,7 @@
 
 import { randomUUID } from "node:crypto";
 import type { ContractRule, IntentContract, ToolSpec } from "./types.js";
-import { canonical } from "./normalize.js";
+import { canonical, display } from "./normalize.js";
 import { signPayload, verifyPayload } from "./crypto.js";
 
 const SCOPE_PATTERNS: Record<string, RegExp> = {
@@ -77,9 +77,12 @@ export function checkContract(c: IntentContract, tool: string, args: Record<stri
   const rule = c.allow.find((r) => r.tool === tool);
   if (!rule) return { ok: false, detail: `${tool} is not part of the task "${c.task}"` };
   if (rule.scope) {
-    const v = canonical(String(args[rule.scope.arg] ?? ""));
+    // The tool receives the raw value, so it is compared as written: only ASCII case is folded. Unicode
+    // folding here would let a lookalike ("acme/websіte", "bоb@acme.com") pass as the repo or recipient the
+    // user named while the tool resolves a different one.
+    const v = String(args[rule.scope.arg] ?? "").replace(/[A-Z]/g, (c) => c.toLowerCase());
     if (!rule.scope.values.includes(v)) {
-      return { ok: false, detail: `${rule.scope.arg} "${args[rule.scope.arg]}" is outside the contract (allowed: ${rule.scope.values.join(", ")})` };
+      return { ok: false, detail: `${rule.scope.arg} "${display(args[rule.scope.arg])}" is outside the contract (allowed: ${rule.scope.values.join(", ")})` };
     }
   }
   return { ok: true, detail: rule.scope ? `allowed on ${rule.scope.values.join(", ")}` : "allowed by contract" };
