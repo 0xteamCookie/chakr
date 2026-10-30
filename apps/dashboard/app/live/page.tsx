@@ -6,7 +6,7 @@ import { api, post, fmtArgs, useLive, type Approval, type ArgLabel } from "@/lib
 import { Button, Toggle, VerdictChip } from "@/components/ui";
 import { ApprovalCard } from "@/components/approval-card";
 
-interface Email { from: string; subject: string; body: string; attacker?: boolean }
+interface Email { from: string; subject: string; body: string; attacker?: boolean; gmail?: boolean }
 interface Step {
   id: string; kind: "text" | "tool"; text?: string; tool?: string; args?: Record<string, unknown>;
   status?: string; verdict?: "ALLOW" | "DENY" | "ESCALATE" | "EXECUTED"; reasons?: string[]; labels?: ArgLabel[];
@@ -21,7 +21,7 @@ interface LiveRun {
   status: "running" | "done" | "error"; error?: string; steps: Step[]; world: World; startBalance: number;
   outcome: { kind: string; headline: string; detail: string[]; stolen: number } | null;
 }
-interface Defaults { inbox: Email[]; tasks: string[]; model: string; hasKey: boolean }
+interface Defaults { inbox: Email[]; tasks: string[]; model: string; hasKey: boolean; gmail?: { configured: boolean; account: string | null } }
 
 const fmt = (n: number) => n.toLocaleString("en-US");
 
@@ -33,6 +33,17 @@ export default function LivePage() {
   const [runId, setRunId] = useState<string | null>(null);
   const [run, setRun] = useState<LiveRun | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [loadingMail, setLoadingMail] = useState(false);
+  const fromGmail = inbox.some((m) => m.gmail);
+  const loadGmail = async () => {
+    setLoadingMail(true); setError(null);
+    try {
+      const r = await api<{ account: string; emails: Email[] }>("/api/live/gmail");
+      if (!r.emails.length) setError(`No recent messages in ${r.account}. Send the test email, wait a moment, then load again.`);
+      else setInbox(r.emails);
+    } catch (e) { setError(`Gmail: ${(e as Error).message}`); }
+    setLoadingMail(false);
+  };
   const approvals = useLive<Approval[]>("/api/approvals", ["approval"], 1500);
 
   useEffect(() => {
@@ -84,16 +95,32 @@ export default function LivePage() {
         {defs && !defs.hasKey && <p className="text-[12.5px] text-amber">No Gemini key on the server: runs use the recorded replay.</p>}
         {error && <p className="text-[12.5px] text-red">{error}</p>}
         <hr className="border-line" />
-        <div className="text-[13.5px] font-semibold">Inbox (editable)</div>
+        <div className="flex items-center justify-between gap-2">
+          <div className="text-[13.5px] font-semibold">{fromGmail ? `Inbox: ${defs?.gmail?.account ?? "Gmail"}` : "Inbox (editable)"}</div>
+          <div className="flex gap-1.5">
+            {defs?.gmail?.configured && (
+              <button type="button" onClick={loadGmail} disabled={loadingMail || running}
+                className="rounded-full border border-line bg-white px-3 py-1 text-[12.5px] hover:border-ink/30 disabled:opacity-50">
+                {loadingMail ? "Loading..." : fromGmail ? "Reload Gmail" : "Load from Gmail"}
+              </button>
+            )}
+            {fromGmail && (
+              <button type="button" onClick={() => defs && setInbox(defs.inbox)} disabled={running}
+                className="rounded-full border border-line bg-canvas px-3 py-1 text-[12.5px] hover:border-ink/30">Demo inbox</button>
+            )}
+          </div>
+        </div>
+        {fromGmail && <p className="text-[12px] text-muted">Real messages, read-only. Payments and outgoing mail stay simulated, so nothing leaves the demo.</p>}
         <div className="space-y-3">
           {inbox.map((m, i) => (
             <div key={i} className={`rounded-xl border p-3 ${m.attacker ? "border-orange/40 bg-orange-soft" : "border-line bg-white"}`}>
               <div className="flex items-center justify-between gap-2 text-[12px]">
                 <span className="font-mono text-muted">#{i + 1} from {m.from}</span>
                 {m.attacker && <span className="rounded-md bg-orange px-1.5 py-0.5 font-mono text-[10.5px] uppercase text-white">Attacker</span>}
+                {m.gmail && <span className="rounded-md bg-blue-soft px-1.5 py-0.5 font-mono text-[10.5px] uppercase text-blue">Gmail</span>}
               </div>
               <div className="mt-1 text-[13px] font-medium">{m.subject}</div>
-              <textarea value={m.body} onChange={(e) => edit(i, { body: e.target.value })} rows={m.attacker ? 6 : 3}
+              <textarea value={m.body} onChange={(e) => edit(i, { body: e.target.value })} rows={m.attacker || m.gmail ? 6 : 3}
                 className="mt-1 w-full rounded-lg border border-line bg-white p-2 text-[12.5px]" />
             </div>
           ))}

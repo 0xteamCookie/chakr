@@ -31,7 +31,11 @@ describe("on-chain verification (mocked chain)", () => {
     r.setChainReader(async () => ({ head: before.head, seq: before.count }));
     const ok = await r.verifyChain();
     expect(ok.ok).toBe(true);
-    expect(ok.onchain).toMatchObject({ status: "ok", matches: true, seq: 3 });
+    expect(ok.onchain).toMatchObject({ status: "ok", matches: true, seq: 3, localSeq: 3 });
+
+    // what "Anchor now" records after a successful on-chain write
+    const { db } = await import("../src/db.js");
+    await db.anchor.create({ data: { seq: before.count, head: before.head, network: "polygon-amoy", txHash: "0xmock" } });
 
     const rw = await r.rewriteHistory();
     expect(rw?.rewritten).toBe(2);
@@ -41,6 +45,23 @@ describe("on-chain verification (mocked chain)", () => {
     expect(bad.brokenAt).toBe(3);
     expect(bad.problem).toBe("chain differs from the head anchored on-chain");
     expect(bad.onchain?.matches).toBe(false);
+  });
+
+  it("a fresh or reset database is not reported as tampered by a head another database anchored", async () => {
+    const { db } = await import("../src/db.js");
+    const saved = await db.anchor.findMany();
+    await db.anchor.deleteMany();
+    r.setChainReader(async () => ({ head: "f".repeat(64), seq: 3345 }));
+    const v = await r.verifyChain();
+    expect(v.onchain?.status).toBe("foreign");
+    expect(v.problem).not.toBe("chain differs from the head anchored on-chain");
+    for (const a of saved) await db.anchor.create({ data: { seq: a.seq, head: a.head, network: a.network, txHash: a.txHash } });
+  });
+
+  it("anchors with a seq the contract accepts after a database reset", () => {
+    expect(r.chainSeqFor(12, 3345)).toBe(3346);
+    expect(r.chainSeqFor(4000, 3345)).toBe(4000);
+    expect(r.chainSeqFor(1, 0)).toBe(1);
   });
 
   it("falls back when the RPC is unreachable", async () => {

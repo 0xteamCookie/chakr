@@ -28,12 +28,15 @@
     "ai": "^7.0.0",
     "cors": "^2.8.6",
     "express": "^5.3.0",
+    "imapflow": "^2.10.0",
+    "mailparser": "^3.14.1",
     "viem": "^2.0.0",
     "zod": "^4.6.7"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
+    "@types/mailparser": "^3.9.0",
     "@types/node": "^20.19.43",
     "cross-env": "^10.1.0",
     "prisma": "6.19.3",

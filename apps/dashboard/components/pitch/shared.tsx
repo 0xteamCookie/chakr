@@ -17,15 +17,19 @@ export function Head({ title, cap, center = false }: { title: string; cap?: stri
 export const reducedMotion = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /** Loops 0..n-1 while active. With reduced motion it rests on the last step. */
-export function useStep(n: number, ms: number, active: boolean) {
+/** Steps 0..n-1 every `ms`. Loops by default; with `hold`, stops on the last step so everything stays visible. */
+export function useStep(n: number, ms: number, active: boolean, hold = false) {
   const [s, setS] = useState(0);
   useEffect(() => {
     if (!active) return;
     if (reducedMotion()) { setS(n - 1); return; }
     setS(0);
-    const t = setInterval(() => setS((v) => (v + 1) % n), ms);
+    const t = setInterval(() => setS((v) => {
+      if (hold && v >= n - 1) { clearInterval(t); return v; }
+      return (v + 1) % n;
+    }), ms);
     return () => clearInterval(t);
-  }, [n, ms, active]);
+  }, [n, ms, active, hold]);
   return s;
 }
 

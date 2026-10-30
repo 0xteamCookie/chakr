@@ -90,7 +90,7 @@ const IDEAS: { icon: string; title: string; from: string; to: string; tone: "blu
   { icon: "user", title: "Human for risky", from: "pay 12,000 to a new vendor", to: "waits for: your approval", tone: "ink" },
 ];
 export function S3({ active }: SP) {
-  const step = useStep(IDEAS.length, 1100, active);
+  const step = useStep(IDEAS.length, 1100, active, true);
   return (
     <div>
       <Head title="Three checks before anything runs." cap="Every tool call passes all three. Then it is logged." />

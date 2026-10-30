@@ -115,8 +115,9 @@ function OnchainCard({ v, last, localHead }: { v: VerifyReport | null; last: Anc
           <dt className="text-muted">On-chain status</dt>
           <dd>{oc.status === "unreachable" ? <span className="text-red">RPC unreachable, using the local anchor ({oc.error})</span>
             : oc.status === "empty" ? "nothing anchored on-chain yet"
-            : oc.matches ? <span className="font-semibold">Matches the local chain at receipt #{oc.seq}</span>
-            : <span className="font-semibold text-red">Does NOT match the local chain at receipt #{oc.seq}</span>}</dd>
+            : oc.status === "foreign" ? <span className="text-amber">The on-chain head was written by an earlier database. Press Anchor now to anchor this one.</span>
+            : oc.matches ? <span className="font-semibold">Matches the local chain at receipt #{oc.localSeq ?? oc.seq}</span>
+            : <span className="font-semibold text-red">Does NOT match the local chain: the anchored receipt was changed</span>}</dd>
           {oc.status === "ok" && <>
             <dt className="text-muted">On-chain head</dt><dd className="font-mono text-[12px] break-all">{oc.head}</dd>
             <dt className="text-muted">Local head{localHead ? "" : " at that receipt"}</dt>

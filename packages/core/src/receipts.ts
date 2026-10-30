@@ -42,12 +42,15 @@ export function appendReceipt(p: ReceiptPayload) {
 }
 
 export interface OnchainInfo {
-  status: "ok" | "unreachable" | "empty";
+  /** "foreign": the on-chain head was written by another database (or before a reset) and this one has not anchored yet */
+  status: "ok" | "unreachable" | "empty" | "foreign";
   network?: string;
   contract?: string;
   seq?: number;
   head?: string;
   matches?: boolean;
+  /** local receipt whose hash is the on-chain head */
+  localSeq?: number;
   explorerUrl?: string;
   error?: string;
 }
@@ -97,6 +100,12 @@ async function readOnchain() {
 
 const onchainConfigured = () => !!(process.env.ANCHOR_RPC_URL && process.env.ANCHOR_CONTRACT);
 
+/**
+ * The contract's seq is only a strictly increasing counter (see anchorHead), so the on-chain head is matched by
+ * hash: an intact local chain contains it, a rewritten one does not. A database that has never anchored on-chain
+ * (fresh, or reset before a demo) cannot contain a head another database wrote; that is reported as "foreign",
+ * not as tampering, until this database anchors for the first time.
+ */
 async function onchainInfo(hashAt: Map<number, string>): Promise<OnchainInfo | undefined> {
   if (!onchainConfigured()) return undefined;
   const contract = process.env.ANCHOR_CONTRACT!;
@@ -104,7 +113,11 @@ async function onchainInfo(hashAt: Map<number, string>): Promise<OnchainInfo | u
   try {
     const c = await readOnchain();
     if (c.seq === 0 && (c.head === GENESIS || c.head === "")) return { ...base, status: "empty" };
-    return { ...base, status: "ok", seq: c.seq, head: c.head, matches: hashAt.get(c.seq) === c.head };
+    const localSeq = [...hashAt].find(([, h]) => h === c.head)?.[0];
+    if (localSeq === undefined && (await db.anchor.count({ where: { network: { not: "local" } } })) === 0) {
+      return { ...base, status: "foreign", seq: c.seq, head: c.head };
+    }
+    return { ...base, status: "ok", seq: c.seq, head: c.head, matches: localSeq !== undefined, ...(localSeq !== undefined ? { localSeq } : {}) };
   } catch (e) {
     return { ...base, status: "unreachable", error: (e as Error).message.split("\n")[0].slice(0, 160) };
   }
@@ -136,7 +149,13 @@ export async function verifyChain(): Promise<VerifyReport> {
   let brokenAt: number | null = null;
 
   const onchain = await onchainInfo(hashAt);
-  if (onchain?.status === "ok" && !onchain.matches) { ok = false; brokenAt = onchain.seq ?? null; problem = "chain differs from the head anchored on-chain"; }
+  if (onchain?.status === "ok" && !onchain.matches) {
+    ok = false;
+    // the last receipt this database anchored on-chain no longer has the hash that was anchored
+    const last = await db.anchor.findFirst({ where: { network: { not: "local" } }, orderBy: { id: "desc" } });
+    brokenAt = last?.seq ?? null;
+    problem = "chain differs from the head anchored on-chain";
+  }
   return { ok, count: rows.length, head: prev, brokenAt, problem, anchor, ...(onchain ? { onchain } : {}) };
 }
 
@@ -171,6 +190,14 @@ const ANCHOR_ABI = [
   },
 ] as const;
 
+/**
+ * The contract only accepts a strictly increasing seq. The local receipt number restarts at 1 when the database is
+ * reset, so the on-chain seq is the local one or, if that is not ahead of the chain, one past the chain's.
+ */
+export function chainSeqFor(localSeq: number, onchainSeq: number): number {
+  return Math.max(localSeq, onchainSeq + 1);
+}
+
 /** Commits the current chain head. Uses a real chain when configured, else records locally. */
 export async function anchorHead() {
   const last = await db.receipt.findFirst({ orderBy: { seq: "desc" } });
@@ -191,11 +218,17 @@ export async function anchorHead() {
       chain: polygonAmoy,
       transport: http(ANCHOR_RPC_URL),
     });
+    let onchainSeq = 0;
+    try {
+      onchainSeq = (await reader()).seq; // fresh read, not the cached one
+    } catch {
+      // unreadable: send the local seq; the contract rejects it if it is not ahead
+    }
     txHash = await client.writeContract({
       address: ANCHOR_CONTRACT as `0x${string}`,
       abi: ANCHOR_ABI,
       functionName: "anchor",
-      args: [`0x${head}`, BigInt(seq)],
+      args: [`0x${head}`, BigInt(chainSeqFor(seq, onchainSeq))],
     });
     const { createPublicClient } = await import("viem");
     await createPublicClient({ chain: polygonAmoy, transport: http(ANCHOR_RPC_URL) }).waitForTransactionReceipt({ hash: txHash as `0x${string}`, timeout: 60_000 });

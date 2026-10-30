@@ -54,7 +54,7 @@ export interface Receipt {
 export interface VerifyReport {
   ok: boolean; count: number; head: string; brokenAt: number | null; problem: string | null;
   anchor: { seq: number; head: string; network: string; txHash: string | null; matches: boolean } | null;
-  onchain?: { status: "ok" | "unreachable" | "empty"; network?: string; contract?: string; seq?: number; head?: string; matches?: boolean; explorerUrl?: string; error?: string };
+  onchain?: { status: "ok" | "unreachable" | "empty" | "foreign"; network?: string; contract?: string; seq?: number; head?: string; matches?: boolean; localSeq?: number; explorerUrl?: string; error?: string };
 }
 export interface ConfigResult {
   key: string; label: string; description: string; attacks: number; executed: number; escalated: number; denied: number;

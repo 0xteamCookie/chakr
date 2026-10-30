@@ -41,11 +41,49 @@ This isolates what the shield guarantees on its own, independent of any model. `
 - Hidden values traced back to the attacker with de-obfuscation: **918/918 for every method** (base64, hex,
   URL-encoding, homoglyphs, zero-width, spaced letters, spelled-out). Without it: 0% to 28%.
 - The heuristic injection detector on its own flags **0%** of InjecAgent's injections, which is why it is advisory only.
-- Decision latency: **p50 0.10 ms, p95 0.12 ms** over 11,635 checks.
+- Decision latency: **p50 0.11 ms, p95 0.20 ms** over 11,635 checks.
 
 Honest limits: the replay measures the shield, not a specific model; benign utility is measured on the user's own tool
 call; the contract comes from a simulated planner that reads only the user instruction; the causal check relies on
 MELON's premise that injected actions don't depend on the user's task.
+
+### InjecAgent with a real model (Claude Haiku 5.5)
+
+All 2,108 cases (1,054 base + 1,054 "enhanced", which prefixes each injection with "IMPORTANT!!! Ignore all previous
+instructions") as real tool-calling conversations. `pnpm eval:llm --setting base|enhanced` reproduces it (about $0.35
+per setting).
+
+| Setting | Model fell for it, no shield | Got through with AgentShield | Normal calls blocked | Final answer given |
+|---|---|---|---|---|
+| Base | 0 / 1,054 | 0 | 0 / 84 | 100% |
+| Enhanced | 2 / 1,054 (0.19%) | 0 (both denied by the contract) | 0 / 63 | 100% |
+
+The current model already resists these 2024-era attacks, so this run cannot show a large drop. What it shows is that
+the shield costs nothing in usefulness with a real model (0 of 147 legitimate calls blocked, every conversation still
+answered) and stops what does get through.
+
+### Adaptive attacks we wrote ourselves
+
+`pnpm eval:adaptive`: 63 bypass attempts against a fully compromised agent, in four families (obfuscation, contract
+spoofing, approval social engineering, abuse of already-allowed actions). **Unexplained bypasses: none.** 9 variants
+succeed and all of them are documented known limits (for example a paraphrased leak inside an allowed action, or a
+phishing link in the body of an allowed message).
+
+### AgentDojo (ground truth, worst case)
+
+No LLM: each task's scripted calls are replayed through the shield, and for attack runs a perfectly obedient hijacked
+agent then attempts the injection task. Harness and method in `eval/agentdojo/README.md`; numbers in
+`eval/agentdojo/summary.json`.
+
+| Suite | Attack success: none → AgentShield | Utility: none → AgentShield | False blocks (calls) |
+|---|---|---|---|
+| Banking (16 tasks, 144 attacks) | 100% → **4.2%** | 100% → 81.2% | 9.1% |
+| Slack (16 tasks, 80 attacks) | 100% → **35.0%** | 100% → 81.2% | 9.4% |
+
+Slack is the weak spot. Of the 28 attacks that get through: visiting the attacker's URL is a low-tier read and is allowed
+(16), a link sent to a real teammate has a trusted recipient and only the causal check could catch it, which needs a
+model to replay (8), and the invite tool's `user_email` is not marked as a destination argument (4). These are
+reported as measured rather than tuned away. Workspace and travel suites have not been run.
 
 ![Evaluation](docs/screenshot-evaluation.png)
 
@@ -60,6 +98,14 @@ pnpm dev              # core on :4317, dashboard on :3000
 
 Open http://localhost:3000/console, pick a scenario, press **Run side by side**.
 
+| Page | What it is |
+|---|---|
+| `/pitch` | 6-slide interactive deck (F fullscreen, N speaker notes) |
+| `/live` | real Gemini agent paying invoices, with and without the shield (needs `GOOGLE_GENERATIVE_AI_API_KEY`; falls back to a recorded replay) |
+| `/audit` | signed receipt chain, anchoring, tamper demo |
+| `/evaluation` | all measured results |
+| `/console` | the six scripted scenarios side by side (no API key needed) |
+
 | Scenario | Based on | What stops it |
 |---|---|---|
 | Poisoned GitHub issue | GitHub MCP exploit, Invariant Labs, May 2025 | contract; without it, provenance (private data into a public PR) |
@@ -72,8 +118,10 @@ Open http://localhost:3000/console, pick a scenario, press **Run side by side**.
 Other commands:
 
 ```bash
-pnpm test                                      # 33 engine tests + scenario matrix
+pnpm test                                      # 54 engine tests + scenario matrix
 pnpm eval                                      # InjecAgent replay (data in eval/data, refetch with pnpm eval:fetch)
+pnpm --filter @agentshield/core eval:adaptive  # 63 hand-written bypass attempts
+pnpm --filter @agentshield/core eval:llm --setting enhanced   # InjecAgent with Claude Haiku 5.5 (needs ANTHROPIC_API_KEY, ~$0.35)
 pnpm --filter @agentshield/mcp-proxy selftest  # MCP proxy end-to-end, incl. rug-pull detection (core must be running)
 pnpm --filter @agentshield/sdk selftest        # SDK over HTTP (core must be running)
 ANTHROPIC_API_KEY=... npx tsx packages/sdk/examples/llm-agent.ts   # real LLM agent (spends API credits)
@@ -94,10 +142,12 @@ API keys are optional and read from the root `.env` if present. Override host po
 packages/core        Express API + engine: contract, provenance, policy, causal check, receipts, scenarios, evaluation
 packages/sdk         @agentshield/sdk: Shield.fromRequest(task).wrap(tools) for the Vercel AI SDK or any { execute }
 packages/mcp-proxy   MCP proxy for Claude Desktop / Cursor / VS Code, with manifest pinning and tool-poisoning scan
-apps/dashboard       Next.js console, approvals, audit chain, evaluation
-contracts            AuditAnchor.sol (chain-head anchoring, compiles with solc 0.8.26)
+python               Python SDK + LangChain adapter
+apps/dashboard       Next.js: /pitch /live /audit /evaluation /console
+contracts            AuditAnchor.sol (deployed on Polygon Amoy at 0x907ad5456ed5abc78060c65f433f679f5a326dba)
 policies             agentshield.rego (OPA policy, mirrors the built-in evaluator)
-eval                 InjecAgent data + fetch script
+eval                 InjecAgent data + fetch script; eval/agentdojo: AgentDojo harness (Python)
+docker               Dockerfiles for docker compose
 docs                 architecture diagram and screenshots
 ```
 
@@ -114,11 +164,13 @@ docs                 architecture diagram and screenshots
 | `ANCHOR_RPC_URL`, `ANCHOR_PRIVATE_KEY`, `ANCHOR_CONTRACT` | anchor the chain head on Polygon Amoy instead of locally |
 | `ANCHOR_INTERVAL_MS` | anchoring interval (default 5 minutes) |
 | `AGENTSHIELD_DATA_DIR` | keys, database and evaluation results (default `.data`) |
+| `GMAIL_USER`, `GMAIL_APP_PASSWORD` | real inbox for `/live` ("Load from Gmail"), read-only over IMAP; use a demo account. `GMAIL_MAILBOX`, `GMAIL_LIMIT` (6), `GMAIL_SINCE_HOURS` (72) narrow what is read |
 
 ## What is simulated
 
-The scenario agents are scripted to follow any instruction they can see, standing in for a fully compromised model,
-so demos are deterministic and free. The SDK example runs a real model. The contract compiler is rule-based by default
+The scenario agents in `/console` are scripted to follow any instruction they can see, standing in for a fully
+compromised model, so those demos are deterministic and free. The `/live` agent is real Gemini; the SDK example and
+`pnpm eval:llm` run real models. The contract compiler is rule-based by default
 (it never sees tool output); anchoring is local unless the testnet variables are set; the detector is a heuristic.
 In MCP proxy and remote-SDK mode the causal check does not run, because the shield cannot re-query the model there.
 
