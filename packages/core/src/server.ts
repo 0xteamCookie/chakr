@@ -12,7 +12,7 @@ import { bus } from "./events.js";
 import { decide, pendingApprovals } from "./approvals.js";
 import { anchorHead, startAnchorLoop, verifyChain, rewriteHistory } from "./receipts.js";
 import { db } from "./db.js";
-import { DATA_DIR, signingKey } from "./crypto.js";
+import { DATA_DIR, sha256, signingKey } from "./crypto.js";
 import { compileRules } from "./contract.js";
 import { currentDetector, injectionScore } from "./detector.js";
 import { runInjecAgentEval } from "./eval/injecagent.js";
@@ -134,23 +134,46 @@ app.post("/api/demo/tamper", wrap(async (_req, res) => {
   return { seq: target.seq, change: "verdict DENY changed to ALLOW in the stored payload" };
 }));
 // Demo only: edit a receipt AND recompute every later hash and signature, so a database-only check passes.
-let rewritten: { seq: number; payload: string; prevHash: string; hash: string; signature: string }[] | null = null;
+type RewriteBackup = { seq: number; payload: string; prevHash: string; hash: string; signature: string }[];
+let rewritten: RewriteBackup | null = null;
+const backupFile = join(DATA_DIR, "demo-backup.json");
+function saveDemoBackup(b: { rewritten: RewriteBackup | null }) {
+  mkdirSync(DATA_DIR, { recursive: true });
+  writeFileSync(backupFile, JSON.stringify(b));
+}
+function loadDemoBackup(): { rewritten: RewriteBackup | null } {
+  try { return existsSync(backupFile) ? JSON.parse(readFileSync(backupFile, "utf8")) : { rewritten: null }; } catch { return { rewritten: null }; }
+}
 app.post("/api/demo/rewrite", wrap(async (_req, res) => {
-  if (rewritten) return res.status(400).json({ error: "history already rewritten: restore first" });
+  if (rewritten ?? loadDemoBackup().rewritten) return res.status(400).json({ error: "history already rewritten: restore first" });
   const r = await rewriteHistory();
   if (!r) return res.status(400).json({ error: "no receipts yet: run a scenario first" });
   rewritten = r.backup;
+  saveDemoBackup({ rewritten: r.backup });
   return { seq: r.seq, rewritten: r.rewritten, change: "verdict DENY changed to ALLOW and all later hashes recomputed" };
 }));
 app.post("/api/demo/restore", wrap(async () => {
+  // the backup is also on disk, so Restore still works after the core restarted mid-demo
+  const saved = loadDemoBackup();
   for (const [seq, payload] of tampered) await db.receipt.update({ where: { seq }, data: { payload } });
   let n = tampered.size;
   tampered.clear();
-  if (rewritten) {
-    for (const b of rewritten) await db.receipt.update({ where: { seq: b.seq }, data: { payload: b.payload, prevHash: b.prevHash, hash: b.hash, signature: b.signature } });
-    n += rewritten.length;
+  const rw = rewritten ?? saved.rewritten;
+  if (rw) {
+    for (const b of rw) await db.receipt.update({ where: { seq: b.seq }, data: { payload: b.payload, prevHash: b.prevHash, hash: b.hash, signature: b.signature } });
+    n += rw.length;
     rewritten = null;
   }
+  // a single-entry edit flips a DENY payload to ALLOW; undo it only when the result matches the signed hash
+  for (const row of await db.receipt.findMany({ where: { verdict: "DENY" } })) {
+    if (!row.payload.includes('"verdict":"ALLOW"')) continue;
+    const original = row.payload.replace(/"verdict":"ALLOW"/, '"verdict":"DENY"').replace(/ $/, "");
+    if (sha256(row.prevHash + original) === row.hash) {
+      await db.receipt.update({ where: { seq: row.seq }, data: { payload: original } });
+      n++;
+    }
+  }
+  saveDemoBackup({ rewritten: null });
   return { restored: n };
 }));
 
