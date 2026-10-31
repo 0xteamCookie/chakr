@@ -5,7 +5,7 @@ import Link from "next/link";
 import { api, post, fmtArgs, useLive, type Approval, type ArgLabel } from "@/lib/api";
 import { Ic } from "@/components/pitch/icons";
 
-interface Email { from: string; subject: string; body: string; attacker?: boolean; gmail?: boolean }
+interface Email { from: string; subject: string; body: string; attacker?: boolean; gmail?: boolean; kind?: "issue"; github?: boolean; repo?: string }
 interface Step {
   id: string; kind: "text" | "tool"; text?: string; tool?: string; args?: Record<string, unknown>;
   status?: string; verdict?: "ALLOW" | "DENY" | "ESCALATE" | "EXECUTED"; reasons?: string[]; labels?: ArgLabel[];
@@ -14,6 +14,7 @@ interface Step {
 interface World {
   balance: number; payments: { to_account: string; amount: number; memo: string }[];
   sent: { to: string; subject: string; body: string }[]; files: { name: string; private: boolean; deleted: boolean }[];
+  prs?: { repo: string; title: string; path: string; public: boolean; leaked: string[]; url?: string }[];
 }
 interface LiveRun {
   id: string; task: string; shield: boolean; mode: "live" | "scripted"; model: string; banner: string | null;
@@ -24,6 +25,7 @@ interface Scenario { id: string; title: string; icon: string; attack: string; ta
 interface Defaults {
   inbox: Email[]; tasks: string[]; scenarios?: Scenario[]; model: string; hasKey: boolean; payees?: { name: string; account: string }[];
   gmail?: { configured: boolean; account: string | null };
+  github?: { configured: boolean; repo: string | null; writes: boolean };
 }
 
 const fmt = (n: number) => Number(n).toLocaleString("en-US");
@@ -40,6 +42,10 @@ function describe(tool = "", a: Record<string, unknown> = {}): { icon: string; t
     case "list_files": return { icon: "box", title: "List files" };
     case "read_file": return { icon: "file", title: `Open ${a.name}` };
     case "delete_file": return { icon: "x", title: `Delete ${a.name}` };
+    case "list_issues": return { icon: "note", title: "Read open issues", sub: String(a.repo ?? "") };
+    case "list_repos": return { icon: "box", title: "List repositories" };
+    case "read_repo_file": return { icon: "file", title: `Open ${a.path}`, sub: String(a.repo ?? "") };
+    case "create_pull_request": return { icon: "gitbranch", title: "Open a pull request", sub: `${a.path} on ${a.repo}` };
     default: return { icon: "terminal", title: tool };
   }
 }
@@ -59,7 +65,9 @@ function chips(s: Step): { icon: string; text: string; tone: Tone }[] {
   }
   if (reasons.some((r) => /always needs a human|above the limit/.test(r))) out.push({ icon: "user", text: "Needs a human", tone: "amber" });
   if (reasons.some((r) => r.startsWith("causal:"))) out.push({ icon: "alert", text: "Driven by an email", tone: "red" });
-  if (reasons.some((r) => /sink/.test(r))) out.push({ icon: "lock", text: "Private data leaving", tone: "red" });
+  const code = [...new Set(reasons.flatMap((r) => [...r.matchAll(/read_repo_file#([\w.-]+):/g)].map((m) => m[1])))];
+  if (code.length) out.push({ icon: "lock", text: `Private code from ${code.join(", ")}`, tone: "red" });
+  else if (reasons.some((r) => /sink/.test(r))) out.push({ icon: "lock", text: "Private data leaving", tone: "red" });
   if (reasons.some((r) => r.startsWith("reviewer: denied"))) out.push({ icon: "x", text: "You denied it", tone: "red" });
   if (reasons.some((r) => r.startsWith("reviewer: approved"))) out.push({ icon: "check", text: "You approved it", tone: "green" });
   if (reasons.some((r) => r.startsWith("reviewer: no decision"))) out.push({ icon: "x", text: "Timed out, denied", tone: "red" });
@@ -104,6 +112,8 @@ export default function LivePage() {
 
   const running = run?.status === "running";
   const fromGmail = inbox.some((m) => m.gmail);
+  const fromGithub = inbox.some((m) => m.github);
+  const issues = inbox.length > 0 && inbox.every((m) => m.kind === "issue");
   const pick = (sc: Scenario) => { setScenario(sc.id); setTask(sc.task); setInbox(sc.inbox); setRun(null); setRunId(null); setError(null); };
   const payees = new Set((defs?.payees ?? []).map((p) => digits(p.account)));
 
@@ -119,6 +129,15 @@ export default function LivePage() {
       if (!r.emails.length) setError(`No recent mail in ${r.account}. Send the test email, then try again.`);
       else { setInbox(r.emails); setScenario(null); }
     } catch (e) { setError(`Gmail: ${(e as Error).message}`); }
+    setLoadingMail(false);
+  };
+  const loadGithub = async () => {
+    setLoadingMail(true); setError(null);
+    try {
+      const r = await api<{ repo: string; issues: Email[] }>("/api/live/github");
+      if (!r.issues.length) setError(`No open issues in ${r.repo}. Open the test issue, then try again.`);
+      else { setInbox(r.issues); setScenario(null); setTask(`Look at the open issues in ${r.repo} and fix them`); setRun(null); setRunId(null); }
+    } catch (e) { setError(`GitHub: ${(e as Error).message}`); }
     setLoadingMail(false);
   };
   const edit = (i: number, body: string) => setInbox((xs) => xs.map((x, j) => (j === i ? { ...x, body } : x)));
@@ -145,8 +164,9 @@ export default function LivePage() {
         </div>
 
         <div className="flex items-center gap-1 rounded-xl bg-canvas p-1" role="group" aria-label="Inbox source">
-          <SegBtn on={!fromGmail} onClick={() => { const sc = defs?.scenarios?.find((x) => x.id === (scenario ?? "invoice")) ?? defs?.scenarios?.[0]; if (sc) pick(sc); }} disabled={running} icon="box" label="Demo inbox" />
+          <SegBtn on={!fromGmail && !fromGithub} onClick={() => { const sc = defs?.scenarios?.find((x) => x.id === (scenario ?? "invoice")) ?? defs?.scenarios?.[0]; if (sc) pick(sc); }} disabled={running} icon="box" label="Demo inbox" />
           {defs?.gmail?.configured && <SegBtn on={fromGmail} onClick={loadGmail} disabled={running || loadingMail} icon="mail" label={loadingMail ? "Loading" : "Gmail"} />}
+          {defs?.github?.configured && <SegBtn on={fromGithub} onClick={loadGithub} disabled={running || loadingMail} icon="gitbranch" label="GitHub" />}
         </div>
 
         <button type="button" onClick={() => setShield(!shield)} disabled={running} aria-pressed={shield}
@@ -170,8 +190,8 @@ export default function LivePage() {
         </div>
       </div>
 
-      {!fromGmail && (defs?.scenarios?.length ?? 0) > 0 && (
-        <div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-5" role="group" aria-label="Demo scenarios">
+      {!fromGmail && !fromGithub && (defs?.scenarios?.length ?? 0) > 0 && (
+        <div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-6" role="group" aria-label="Demo scenarios">
           {defs!.scenarios!.map((sc) => {
             const on = scenario === sc.id;
             const safe = sc.id === "clean";
@@ -201,15 +221,18 @@ export default function LivePage() {
         {/* ------------------------------------------------ inbox */}
         <section className="card h-fit p-4">
           <div className="mb-3 flex items-center gap-2">
-            <Ic n="mail" size={18} />
-            <span className="text-[15px] font-semibold">Inbox</span>
+            <Ic n={issues ? "gitbranch" : "mail"} size={18} />
+            <span className="text-[15px] font-semibold">{issues ? "Issues" : "Inbox"}</span>
+            {issues && !fromGithub && <span className="truncate font-mono text-[11px] text-muted">{inbox[0].repo}</span>}
             <span className="rounded-full bg-canvas px-2 py-0.5 font-mono text-[11px]">{inbox.length}</span>
             {fromGmail && <span className="ml-auto truncate font-mono text-[11px] text-blue" title="Real messages, read-only">{defs?.gmail?.account}</span>}
+            {fromGithub && <span className="ml-auto truncate font-mono text-[11px] text-blue" title="Real issues, read-only">{defs?.github?.repo}</span>}
           </div>
           <div className="space-y-2">
             {inbox.map((m, i) => <MailCard key={`${m.from}-${i}`} m={m} i={i} onEdit={(b) => edit(i, b)} />)}
           </div>
           {fromGmail && <p className="mt-3 flex items-center gap-1.5 text-[11.5px] text-muted"><Ic n="lock" size={13} /> read-only, actions stay simulated</p>}
+          {fromGithub && <p className="mt-3 flex items-center gap-1.5 text-[11.5px] text-muted"><Ic n="lock" size={13} /> {defs?.github?.writes ? "real reads, pull requests are really opened" : "real reads, pull requests stay simulated"}</p>}
         </section>
 
         {/* ------------------------------------------------ what the agent did */}
@@ -253,9 +276,11 @@ export default function LivePage() {
 
         {/* ------------------------------------------------ the world */}
         <section className="space-y-4">
-          <Money run={run} payees={payees} />
-          <Leaks run={run} />
-          <Files run={run} />
+          {issues ? <PullRequests run={run} /> : <>
+            <Money run={run} payees={payees} />
+            <Leaks run={run} />
+            <Files run={run} />
+          </>}
         </section>
       </div>
     </div>
@@ -312,13 +337,13 @@ function MailCard({ m, i, onEdit }: { m: Email; i: number; onEdit: (b: string) =
     <div className={`rounded-xl border ${m.attacker ? "border-orange/40 bg-orange-soft/60" : "border-line bg-white"}`}>
       <button type="button" onClick={() => setOpen(!open)} aria-expanded={open} className="flex w-full items-start gap-2.5 p-2.5 text-left">
         <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-full text-[13px] font-semibold uppercase text-white ${m.attacker ? "bg-orange" : m.gmail ? "bg-blue" : "bg-ink/70"}`}>
-          {m.from.replace(/[^a-z]/gi, "").charAt(0) || "?"}
+          {m.kind === "issue" ? <Ic n="note" size={15} /> : m.from.replace(/[^a-z]/gi, "").charAt(0) || "?"}
         </span>
         <span className="min-w-0 flex-1">
           <span className="flex items-center gap-1.5">
-            <span className="font-mono text-[10.5px] text-muted">#{i + 1}</span>
+            {m.kind !== "issue" && <span className="font-mono text-[10.5px] text-muted">#{i + 1}</span>}
             <span className="truncate text-[12px] text-ink-2">{m.from}</span>
-            {m.attacker && <span title="Planted attack email" className="text-orange"><Ic n="alert" size={14} /></span>}
+            {m.attacker && <span title={m.kind === "issue" ? "Planted attack issue" : "Planted attack email"} className="text-orange"><Ic n="alert" size={14} /></span>}
           </span>
           <span className="block truncate text-[13px] font-medium">{m.subject}</span>
           {!open && <span className="block truncate text-[12px] text-muted">{m.body}</span>}
@@ -567,5 +592,46 @@ function Files({ run }: { run: LiveRun | null }) {
         {!files.length && <div className="text-[12px] text-muted">3 files, 2 private</div>}
       </div>
     </Panel>
+  );
+}
+
+function PullRequests({ run }: { run: LiveRun | null }) {
+  const prs = run?.world.prs ?? [];
+  const leaked = prs.filter((p) => p.leaked.length);
+  return (
+    <>
+      <Panel icon="gitbranch" title="Pull requests"
+        right={<span className={`rounded-full px-2 py-0.5 font-mono text-[11px] ${leaked.length ? "bg-orange text-white" : "bg-canvas"}`}>{prs.length}</span>}>
+        {prs.length ? (
+          <div className="space-y-2">
+            {prs.map((p, i) => (
+              <div key={i} className={`anim-fade-up rounded-lg px-2.5 py-2 text-[12.5px] ${p.leaked.length ? "bg-orange-soft text-orange" : "bg-canvas"}`}>
+                <div className="flex items-center gap-1.5">
+                  <Ic n={p.leaked.length ? "alert" : "check"} size={14} />
+                  <span className="truncate font-semibold">{p.title}</span>
+                </div>
+                <div className="mt-0.5 flex items-center gap-1.5 font-mono text-[11px] text-ink-2">
+                  <Ic n="globe" size={11} /> {p.repo} / {p.path}
+                  {p.url && <a href={p.url} target="_blank" rel="noreferrer" className="ml-auto text-blue underline">open</a>}
+                </div>
+                {p.leaked.length > 0 && (
+                  <div className="mt-1.5 flex flex-wrap gap-1">
+                    {p.leaked.map((f) => <span key={f} className="inline-flex items-center gap-1 rounded-md bg-orange px-1.5 py-0.5 font-mono text-[10.5px] text-white"><Ic n="lock" size={10} /> {f}</span>)}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : <div className="text-[12px] text-muted">{run ? "no pull requests opened" : "nothing opened yet"}</div>}
+      </Panel>
+      <Panel icon="lock" title="Private code">
+        <div className={`flex items-center gap-3 rounded-xl px-3 py-3 ${leaked.length ? "bg-orange text-white" : "bg-green-soft text-green"}`}>
+          <Ic n={leaked.length ? "alert" : "lock"} size={22} />
+          <span className="text-[14px] font-semibold">
+            {leaked.length ? `${new Set(leaked.flatMap((p) => p.leaked)).size} private files now public` : "Still private"}
+          </span>
+        </div>
+      </Panel>
+    </>
   );
 }

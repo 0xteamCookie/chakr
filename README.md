@@ -165,6 +165,7 @@ docs                 architecture diagram and screenshots
 | `ANCHOR_INTERVAL_MS` | anchoring interval (default 5 minutes) |
 | `AGENTSHIELD_DATA_DIR` | keys, database and evaluation results (default `.data`) |
 | `GMAIL_USER`, `GMAIL_APP_PASSWORD` | real inbox for `/live` ("Load from Gmail"), read-only over IMAP; use a demo account. `GMAIL_MAILBOX`, `GMAIL_LIMIT` (6), `GMAIL_SINCE_HOURS` (72) narrow what is read |
+| `GITHUB_TOKEN`, `GITHUB_REPO` | real GitHub for `/live` ("GitHub" button): open issues of `GITHUB_REPO`, file reads from any repo the token sees. Pull requests are simulated unless `GITHUB_ALLOW_WRITE=1`; use throwaway demo repos |
 
 ## What is simulated
 
