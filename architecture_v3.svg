@@ -1,0 +1,342 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2600" height="1660" viewBox="0 0 2600 1660"><defs><marker id="m" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#6B7385"/></marker><marker id="ms" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#6B7385"/></marker><marker id="b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2B4BF2"/></marker><marker id="bs" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2B4BF2"/></marker><marker id="o" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#E2582B"/></marker><marker id="os" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#E2582B"/></marker><marker id="g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#15803D"/></marker><marker id="gs" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#15803D"/></marker><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#B45309"/></marker><marker id="as" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#B45309"/></marker><marker id="k" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#11141B"/></marker><marker id="ks" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#11141B"/></marker></defs><rect width="2600" height="1660" fill="#EEF1F6"/>
+<text x="40" y="62" font-family="Arial, Helvetica, sans-serif" font-size="36" fill="#0B0D12" font-weight="bold" text-anchor="start">AgentShield</text>
+<text x="262" y="62" font-family="Arial, Helvetica, sans-serif" font-size="36" fill="#6B7385" font-weight="normal" text-anchor="start">system architecture</text>
+<text x="40" y="92" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#3C4352" font-weight="normal" text-anchor="start">Intent-bound, provenance-aware execution control for AI agents  |  every tool call checked before it runs, every decision signed, chained and anchored on-chain</text>
+<rect x="2080" y="44" width="55.0" height="24" rx="12" fill="#E8ECFE" stroke="none" stroke-width="0"/>
+<text x="2107.5" y="60.5" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#2B4BF2" font-weight="bold" text-anchor="middle">BUILT</text>
+<rect x="2172" y="44" width="136.4" height="24" rx="12" fill="#FDF1DC" stroke="none" stroke-width="0"/>
+<text x="2240.2" y="60.5" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#B45309" font-weight="bold" text-anchor="middle">ROADMAP (dashed)</text>
+<rect x="2342" y="44" width="143.8" height="24" rx="12" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<text x="2413.9" y="60.5" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#0B0D12" font-weight="bold" text-anchor="middle">REQUEST FLOW 1-14</text>
+<rect x="30" y="120" width="2540" height="150" rx="18" fill="#E3E8F0" stroke="none" stroke-width="0"/>
+<text x="48" y="148" font-family="Arial, Helvetica, sans-serif" font-size="13" fill="#6B7385" font-weight="bold" text-anchor="start" letter-spacing="1.6">AGENT RUNTIMES  (ANY MODEL, ANY FRAMEWORK)</text>
+<rect x="50" y="165" width="398" height="82" rx="10" fill="#FFFFFF" stroke="#D5DAE3" stroke-width="1.2"/>
+<circle cx="72" cy="206.0" r="11" fill="#2B4BF2"/>
+<text x="92" y="202.5" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#0B0D12" font-weight="bold" text-anchor="start">Gemini agent</text>
+<text x="92" y="220.5" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">Vercel AI SDK, live demo</text>
+<rect x="468" y="165" width="398" height="82" rx="10" fill="#FFFFFF" stroke="#D5DAE3" stroke-width="1.2"/>
+<circle cx="490" cy="206.0" r="11" fill="#2B4BF2"/>
+<text x="510" y="202.5" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#0B0D12" font-weight="bold" text-anchor="start">Claude / OpenAI agents</text>
+<text x="510" y="220.5" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">TypeScript, generateText + tools</text>
+<rect x="886" y="165" width="398" height="82" rx="10" fill="#FFFFFF" stroke="#D5DAE3" stroke-width="1.2"/>
+<circle cx="908" cy="206.0" r="11" fill="#2B4BF2"/>
+<text x="928" y="202.5" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#0B0D12" font-weight="bold" text-anchor="start">LangChain agents</text>
+<text x="928" y="220.5" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">Python, LangChain adapter</text>
+<rect x="1304" y="165" width="398" height="82" rx="10" fill="#FFFFFF" stroke="#D5DAE3" stroke-width="1.2"/>
+<circle cx="1326" cy="206.0" r="11" fill="#2B4BF2"/>
+<text x="1346" y="202.5" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#0B0D12" font-weight="bold" text-anchor="start">Claude Desktop / Cursor / VS Code</text>
+<text x="1346" y="220.5" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">any MCP client, zero code change</text>
+<rect x="1722" y="165" width="398" height="82" rx="10" fill="#FFFFFF" stroke="#D5DAE3" stroke-width="1.2"/>
+<circle cx="1744" cy="206.0" r="11" fill="#2B4BF2"/>
+<text x="1764" y="202.5" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#0B0D12" font-weight="bold" text-anchor="start">Benchmark agents</text>
+<text x="1764" y="220.5" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">AgentDojo, InjecAgent, adaptive</text>
+<rect x="2140" y="165" width="398" height="82" rx="10" fill="#FFFFFF" stroke="#D5DAE3" stroke-width="1.2"/>
+<circle cx="2162" cy="206.0" r="11" fill="#2B4BF2"/>
+<text x="2182" y="202.5" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#0B0D12" font-weight="bold" text-anchor="start">Any HTTP service</text>
+<text x="2182" y="220.5" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">REST /v1 from any language</text>
+<circle cx="50" cy="165" r="13" fill="#11141B"/>
+<text x="50" y="169.8" font-family="Arial, Helvetica, sans-serif" font-size="12.5" fill="#FFFFFF" font-weight="bold" text-anchor="middle">1</text>
+<rect x="30" y="290" width="2540" height="150" rx="18" fill="#E3E8F0" stroke="none" stroke-width="0"/>
+<text x="48" y="318" font-family="Arial, Helvetica, sans-serif" font-size="13" fill="#6B7385" font-weight="bold" text-anchor="start" letter-spacing="1.6">INGRESS  (INTERCEPT BEFORE EXECUTION)</text>
+<rect x="50" y="335" width="500" height="82" rx="10" fill="#FFFFFF" stroke="#D5DAE3" stroke-width="1.2"/>
+<text x="64" y="372.5" font-family="'DejaVu Sans Mono', Consolas, monospace" font-size="15" fill="#0B0D12" font-weight="bold" text-anchor="start">@agentshield/sdk</text>
+<text x="64" y="390.5" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">Shield.fromRequest(task).wrap(tools)</text>
+<rect x="570" y="335" width="470" height="82" rx="10" fill="#FFFFFF" stroke="#D5DAE3" stroke-width="1.2"/>
+<text x="584" y="372.5" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#0B0D12" font-weight="bold" text-anchor="start">Python SDK</text>
+<text x="584" y="390.5" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">wrap() + LangChain tool adapter</text>
+<rect x="1060" y="335" width="620" height="82" rx="10" fill="#FFFFFF" stroke="#D5DAE3" stroke-width="1.2"/>
+<text x="1074" y="372.5" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#0B0D12" font-weight="bold" text-anchor="start">MCP proxy</text>
+<text x="1074" y="390.5" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">stdio / HTTP, SHA-256 manifest pinning, tool-poisoning scan, rug-pull quarantine</text>
+<rect x="1700" y="335" width="470" height="82" rx="10" fill="#FFFFFF" stroke="#D5DAE3" stroke-width="1.2"/>
+<text x="1714" y="372.5" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#0B0D12" font-weight="bold" text-anchor="start">REST API</text>
+<text x="1714" y="390.5" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">/v1/sessions /v1/check /v1/result /v1/tools /v1/scan</text>
+<rect x="2190" y="335" width="360" height="82" rx="10" fill="#FFFFFF" stroke="#D5DAE3" stroke-width="1.2"/>
+<text x="2204" y="372.5" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#0B0D12" font-weight="bold" text-anchor="start">Event bus</text>
+<text x="2204" y="390.5" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">Server-Sent Events to the dashboard</text>
+<circle cx="50" cy="335" r="13" fill="#11141B"/>
+<text x="50" y="339.8" font-family="Arial, Helvetica, sans-serif" font-size="12.5" fill="#FFFFFF" font-weight="bold" text-anchor="middle">2</text>
+<polyline points="420,247 420,335" fill="none" stroke="#2B4BF2" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#b)"/>
+<polyline points="805,247 805,335" fill="none" stroke="#2B4BF2" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#b)"/>
+<polyline points="1370,247 1370,335" fill="none" stroke="#2B4BF2" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#b)"/>
+<polyline points="1935,247 1935,335" fill="none" stroke="#2B4BF2" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#b)"/>
+<polyline points="2370,247 2370,335" fill="none" stroke="#2B4BF2" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#b)"/>
+<rect x="30" y="460" width="560" height="760" rx="18" fill="#E8ECFE" stroke="none" stroke-width="0"/>
+<text x="48" y="488" font-family="Arial, Helvetica, sans-serif" font-size="13" fill="#2B4BF2" font-weight="bold" text-anchor="start" letter-spacing="1.6">TRUSTED CONTROL PLANE  (NEVER SEES TOOL OUTPUT)</text>
+<rect x="55" y="510" width="510" height="74" rx="10" fill="#FFFFFF" stroke="#D5DAE3" stroke-width="1.2"/>
+<text x="69" y="543.5" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#0B0D12" font-weight="bold" text-anchor="start">User request</text>
+<text x="69" y="561.5" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">the only text the contract compiler is allowed to read</text>
+<rect x="55" y="604" width="510" height="84" rx="10" fill="#FFFFFF" stroke="#D5DAE3" stroke-width="1.2"/>
+<text x="69" y="635.0" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#0B0D12" font-weight="bold" text-anchor="start">Contract compiler</text>
+<text x="69" y="653.0" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">rule-based: keywords + scope values from the request; low-tier reads always</text>
+<text x="69" y="668.0" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">granted</text>
+<rect x="55" y="708" width="510" height="74" rx="10" fill="#FFFFFF" stroke="#D5DAE3" stroke-width="1.2"/>
+<text x="69" y="741.5" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#0B0D12" font-weight="bold" text-anchor="start">Ed25519 signer</text>
+<text x="69" y="759.5" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">contract signed, session-bound expiry</text>
+<rect x="55" y="802" width="510" height="84" rx="10" fill="#11141B" stroke="#11141B" stroke-width="1.2"/>
+<text x="69" y="840.5" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#FFFFFF" font-weight="bold" text-anchor="start">Intent contract</text>
+<text x="69" y="858.5" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#B9C2D6" font-weight="normal" text-anchor="start">frozen, default deny, narrow-only; widening needs a human</text>
+<rect x="55" y="906" width="245" height="84" rx="10" fill="#FFFFFF" stroke="#D5DAE3" stroke-width="1.2"/>
+<text x="69" y="944.5" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#0B0D12" font-weight="bold" text-anchor="start">Org policy</text>
+<text x="69" y="962.5" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">tiers, limits, forbidden patterns</text>
+<rect x="320" y="906" width="245" height="84" rx="10" fill="#FFFFFF" stroke="#D5DAE3" stroke-width="1.2"/>
+<text x="334" y="944.5" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#0B0D12" font-weight="bold" text-anchor="start">OPA sidecar</text>
+<text x="334" y="962.5" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">Rego bundle, optional</text>
+<rect x="55" y="1010" width="245" height="84" rx="10" fill="#FFFFFF" stroke="#D5DAE3" stroke-width="1.2" stroke-dasharray="7 5"/>
+<text x="69" y="1048.5" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#0B0D12" font-weight="bold" text-anchor="start">LLM compiler</text>
+<text x="69" y="1066.5" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">planner that sees only the request</text>
+<text x="290" y="1026" font-family="Arial, Helvetica, sans-serif" font-size="9.5" fill="#B45309" font-weight="bold" text-anchor="end" letter-spacing="1">ROADMAP</text>
+<rect x="320" y="1010" width="245" height="84" rx="10" fill="#FFFFFF" stroke="#D5DAE3" stroke-width="1.2" stroke-dasharray="7 5"/>
+<text x="334" y="1048.5" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#0B0D12" font-weight="bold" text-anchor="start">SSO / RBAC</text>
+<text x="334" y="1066.5" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">per-team policy owners</text>
+<text x="555" y="1026" font-family="Arial, Helvetica, sans-serif" font-size="9.5" fill="#B45309" font-weight="bold" text-anchor="end" letter-spacing="1">ROADMAP</text>
+<rect x="55" y="1114" width="510" height="84" rx="10" fill="#FFFFFF" stroke="#D5DAE3" stroke-width="1.2" stroke-dasharray="7 5"/>
+<text x="69" y="1152.5" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#0B0D12" font-weight="bold" text-anchor="start">Multi-tenant policy registry</text>
+<text x="69" y="1170.5" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">versioned policies per org, signed bundles</text>
+<text x="555" y="1130" font-family="Arial, Helvetica, sans-serif" font-size="9.5" fill="#B45309" font-weight="bold" text-anchor="end" letter-spacing="1">ROADMAP</text>
+<circle cx="55" cy="604" r="13" fill="#2B4BF2"/>
+<text x="55" y="608.8" font-family="Arial, Helvetica, sans-serif" font-size="12.5" fill="#FFFFFF" font-weight="bold" text-anchor="middle">3</text>
+<circle cx="55" cy="802" r="13" fill="#2B4BF2"/>
+<text x="55" y="806.8" font-family="Arial, Helvetica, sans-serif" font-size="12.5" fill="#FFFFFF" font-weight="bold" text-anchor="middle">4</text>
+<polyline points="310,584 310,604" fill="none" stroke="#2B4BF2" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#b)"/>
+<polyline points="310,688 310,708" fill="none" stroke="#2B4BF2" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#b)"/>
+<polyline points="310,782 310,802" fill="none" stroke="#2B4BF2" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#b)"/>
+<polyline points="442,990 442,1010" fill="none" stroke="#6B7385" stroke-width="1.8" stroke-linejoin="round" stroke-dasharray="7 5" marker-end="url(#m)"/>
+<rect x="610" y="460" width="1020" height="760" rx="18" fill="#DCE2EC" stroke="none" stroke-width="0"/>
+<text x="628" y="488" font-family="Arial, Helvetica, sans-serif" font-size="13" fill="#0B0D12" font-weight="bold" text-anchor="start" letter-spacing="1.6">DECISION CORE  (NODE.JS + EXPRESS, P50 0.11 MS)</text>
+<rect x="635" y="510" width="400" height="78" rx="10" fill="#FFFFFF" stroke="#D5DAE3" stroke-width="1.2"/>
+<text x="649" y="545.5" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#0B0D12" font-weight="bold" text-anchor="start">Normalizer</text>
+<text x="649" y="563.5" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">zod schema, session, agent id</text>
+<circle cx="635" cy="510" r="13" fill="#11141B"/>
+<text x="635" y="514.8" font-family="Arial, Helvetica, sans-serif" font-size="12.5" fill="#FFFFFF" font-weight="bold" text-anchor="middle">5</text>
+<polyline points="835.0,588 835.0,610" fill="none" stroke="#11141B" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#k)"/>
+<rect x="635" y="610" width="400" height="78" rx="10" fill="#FFFFFF" stroke="#D5DAE3" stroke-width="1.2"/>
+<text x="649" y="645.5" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#0B0D12" font-weight="bold" text-anchor="start">Contract check</text>
+<text x="649" y="663.5" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">signature valid? action and scope in contract?</text>
+<circle cx="635" cy="610" r="13" fill="#11141B"/>
+<text x="635" y="614.8" font-family="Arial, Helvetica, sans-serif" font-size="12.5" fill="#FFFFFF" font-weight="bold" text-anchor="middle">6</text>
+<polyline points="835.0,688 835.0,710" fill="none" stroke="#11141B" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#k)"/>
+<rect x="635" y="710" width="400" height="78" rx="10" fill="#FFFFFF" stroke="#D5DAE3" stroke-width="1.2"/>
+<text x="649" y="745.5" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#0B0D12" font-weight="bold" text-anchor="start">Provenance engine</text>
+<text x="649" y="763.5" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">who wrote each argument, who may see it</text>
+<circle cx="635" cy="710" r="13" fill="#11141B"/>
+<text x="635" y="714.8" font-family="Arial, Helvetica, sans-serif" font-size="12.5" fill="#FFFFFF" font-weight="bold" text-anchor="middle">7</text>
+<polyline points="835.0,788 835.0,810" fill="none" stroke="#11141B" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#k)"/>
+<rect x="635" y="810" width="400" height="78" rx="10" fill="#FFFFFF" stroke="#D5DAE3" stroke-width="1.2"/>
+<text x="649" y="845.5" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#0B0D12" font-weight="bold" text-anchor="start">Policy + risk tier</text>
+<text x="649" y="863.5" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">OPA or built-in, LOW to FORBIDDEN</text>
+<circle cx="635" cy="810" r="13" fill="#11141B"/>
+<text x="635" y="814.8" font-family="Arial, Helvetica, sans-serif" font-size="12.5" fill="#FFFFFF" font-weight="bold" text-anchor="middle">8</text>
+<polyline points="835.0,888 835.0,910" fill="none" stroke="#11141B" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#k)"/>
+<rect x="635" y="910" width="400" height="78" rx="10" fill="#FFFFFF" stroke="#D5DAE3" stroke-width="1.2"/>
+<text x="649" y="945.5" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#0B0D12" font-weight="bold" text-anchor="start">Causal check gate</text>
+<text x="649" y="963.5" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">only if HIGH risk and rules are inconclusive</text>
+<circle cx="635" cy="910" r="13" fill="#11141B"/>
+<text x="635" y="914.8" font-family="Arial, Helvetica, sans-serif" font-size="12.5" fill="#FFFFFF" font-weight="bold" text-anchor="middle">9</text>
+<rect x="635" y="1010" width="400" height="78" rx="10" fill="#11141B" stroke="#11141B" stroke-width="1.2"/>
+<text x="649" y="1045.5" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#FFFFFF" font-weight="bold" text-anchor="start">Decision</text>
+<text x="649" y="1063.5" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#B9C2D6" font-weight="normal" text-anchor="start">ALLOW | ESCALATE | DENY</text>
+<circle cx="635" cy="1010" r="13" fill="#11141B"/>
+<text x="635" y="1014.8" font-family="Arial, Helvetica, sans-serif" font-size="12.5" fill="#FFFFFF" font-weight="bold" text-anchor="middle">10</text>
+<polyline points="835.0,988 835.0,1010" fill="none" stroke="#11141B" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#k)"/>
+<rect x="635" y="1114" width="190" height="84" rx="10" fill="#FFFFFF" stroke="#E2582B" stroke-width="2"/>
+<text x="649" y="1145.0" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#E2582B" font-weight="bold" text-anchor="start">DENY</text>
+<text x="649" y="1163.0" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">structured error back to</text>
+<text x="649" y="1178.0" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">the agent</text>
+<rect x="845" y="1114" width="190" height="84" rx="10" fill="#FFFFFF" stroke="#15803D" stroke-width="2"/>
+<text x="859" y="1152.5" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#15803D" font-weight="bold" text-anchor="start">ALLOW</text>
+<text x="859" y="1170.5" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">forward to the tool</text>
+<polyline points="730,1088 730,1114" fill="none" stroke="#E2582B" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#o)"/>
+<polyline points="940,1088 940,1114" fill="none" stroke="#15803D" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#g)"/>
+<polyline points="565,845 600,845 600,649 635,649" fill="none" stroke="#2B4BF2" stroke-width="2.4" stroke-linejoin="round" marker-end="url(#b)"/>
+<polyline points="565,948 612,948 612,849 635,849" fill="none" stroke="#2B4BF2" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#b)"/>
+<rect x="1060" y="505" width="550" height="300" rx="12" fill="#FFFFFF" stroke="#D5DAE3" stroke-width="1.2"/>
+<text x="1076" y="532" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#0B0D12" font-weight="bold" text-anchor="start">De-obfuscation pipeline</text>
+<text x="1076" y="551" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">every untrusted value is decoded 12 ways before matching</text>
+<rect x="1076" y="566" width="47.6" height="24" rx="12" fill="#E8ECFE" stroke="none" stroke-width="0"/>
+<text x="1099.8" y="582.5" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#2B4BF2" font-weight="bold" text-anchor="middle">NFKC</text>
+<rect x="1131.6" y="566" width="92.0" height="24" rx="12" fill="#E8ECFE" stroke="none" stroke-width="0"/>
+<text x="1177.6" y="582.5" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#2B4BF2" font-weight="bold" text-anchor="middle">homoglyphs</text>
+<rect x="1231.6" y="566" width="92.0" height="24" rx="12" fill="#E8ECFE" stroke="none" stroke-width="0"/>
+<text x="1277.6" y="582.5" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#2B4BF2" font-weight="bold" text-anchor="middle">zero-width</text>
+<rect x="1331.6" y="566" width="99.4" height="24" rx="12" fill="#E8ECFE" stroke="none" stroke-width="0"/>
+<text x="1381.3" y="582.5" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#2B4BF2" font-weight="bold" text-anchor="middle">spelled-out</text>
+<rect x="1439.0" y="566" width="121.60000000000001" height="24" rx="12" fill="#E8ECFE" stroke="none" stroke-width="0"/>
+<text x="1499.8" y="582.5" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#2B4BF2" font-weight="bold" text-anchor="middle">spaced letters</text>
+<rect x="1076" y="598" width="106.80000000000001" height="24" rx="12" fill="#E8ECFE" stroke="none" stroke-width="0"/>
+<text x="1129.4" y="614.5" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#2B4BF2" font-weight="bold" text-anchor="middle">URL-encoding</text>
+<rect x="1190.8" y="598" width="114.2" height="24" rx="12" fill="#E8ECFE" stroke="none" stroke-width="0"/>
+<text x="1247.8999999999999" y="614.5" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#2B4BF2" font-weight="bold" text-anchor="middle">HTML entities</text>
+<rect x="1313.0" y="598" width="136.4" height="24" rx="12" fill="#E8ECFE" stroke="none" stroke-width="0"/>
+<text x="1381.2" y="614.5" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#2B4BF2" font-weight="bold" text-anchor="middle">markdown escapes</text>
+<rect x="1457.4" y="598" width="106.80000000000001" height="24" rx="12" fill="#E8ECFE" stroke="none" stroke-width="0"/>
+<text x="1510.8000000000002" y="614.5" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#2B4BF2" font-weight="bold" text-anchor="middle">code escapes</text>
+<rect x="1076" y="630" width="106.80000000000001" height="24" rx="12" fill="#E8ECFE" stroke="none" stroke-width="0"/>
+<text x="1129.4" y="646.5" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#2B4BF2" font-weight="bold" text-anchor="middle">string joins</text>
+<rect x="1190.8" y="630" width="84.60000000000001" height="24" rx="12" fill="#E8ECFE" stroke="none" stroke-width="0"/>
+<text x="1233.1" y="646.5" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#2B4BF2" font-weight="bold" text-anchor="middle">byte runs</text>
+<rect x="1283.3999999999999" y="630" width="173.4" height="24" rx="12" fill="#E8ECFE" stroke="none" stroke-width="0"/>
+<text x="1370.1" y="646.5" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#2B4BF2" font-weight="bold" text-anchor="middle">base64 / base32 / hex</text>
+<rect x="1464.8" y="630" width="55.0" height="24" rx="12" fill="#E8ECFE" stroke="none" stroke-width="0"/>
+<text x="1492.3" y="646.5" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#2B4BF2" font-weight="bold" text-anchor="middle">rot13</text>
+<rect x="1076" y="662" width="77.2" height="24" rx="12" fill="#E8ECFE" stroke="none" stroke-width="0"/>
+<text x="1114.6" y="678.5" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#2B4BF2" font-weight="bold" text-anchor="middle">reversed</text>
+<rect x="1161.2" y="662" width="92.0" height="24" rx="12" fill="#E8ECFE" stroke="none" stroke-width="0"/>
+<text x="1207.2" y="678.5" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#2B4BF2" font-weight="bold" text-anchor="middle">stacked x2</text>
+<rect x="1076" y="706" width="255" height="84" rx="10" fill="#FFFFFF" stroke="#D5DAE3" stroke-width="1.2"/>
+<text x="1090" y="737.0" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#0B0D12" font-weight="bold" text-anchor="start">Label store</text>
+<text x="1090" y="755.0" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">integrity x confidentiality lattice</text>
+<text x="1090" y="770.0" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">per segment</text>
+<rect x="1339" y="706" width="255" height="84" rx="10" fill="#FFFFFF" stroke="#D5DAE3" stroke-width="1.2"/>
+<text x="1353" y="737.0" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#0B0D12" font-weight="bold" text-anchor="start">Tracers</text>
+<text x="1353" y="755.0" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">exact, salient tokens, 4-gram</text>
+<text x="1353" y="770.0" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">shingles, seams</text>
+<polyline points="1035,749 1060,690" fill="none" stroke="#6B7385" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#m)" marker-start="url(#ms)"/>
+<rect x="1060" y="822" width="268" height="84" rx="10" fill="#FFFFFF" stroke="#D5DAE3" stroke-width="1.2"/>
+<text x="1074" y="860.5" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#0B0D12" font-weight="bold" text-anchor="start">Injection detector</text>
+<text x="1074" y="878.5" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">heuristic score, advisory only</text>
+<rect x="1342" y="822" width="268" height="84" rx="10" fill="#FFFFFF" stroke="#D5DAE3" stroke-width="1.2" stroke-dasharray="7 5"/>
+<text x="1356" y="860.5" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#0B0D12" font-weight="bold" text-anchor="start">Prompt Guard 2</text>
+<text x="1356" y="878.5" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">model detector, advisory</text>
+<text x="1600" y="838" font-family="Arial, Helvetica, sans-serif" font-size="9.5" fill="#B45309" font-weight="bold" text-anchor="end" letter-spacing="1">ROADMAP</text>
+<rect x="1060" y="922" width="550" height="84" rx="10" fill="#FFFFFF" stroke="#D5DAE3" stroke-width="1.2"/>
+<text x="1074" y="953.0" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#0B0D12" font-weight="bold" text-anchor="start">Shadow replay runner</text>
+<text x="1074" y="971.0" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">re-run the step with the user's task masked: same action means the email drove it</text>
+<text x="1074" y="986.0" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">(MELON-style)</text>
+<rect x="1060" y="1022" width="550" height="84" rx="10" fill="#FFFFFF" stroke="#D5DAE3" stroke-width="1.2"/>
+<text x="1074" y="1053.0" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#0B0D12" font-weight="bold" text-anchor="start">Output labeller</text>
+<text x="1074" y="1071.0" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">every tool result tagged UNTRUSTED + its confidentiality, fingerprinted into the</text>
+<text x="1074" y="1086.0" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">label store</text>
+<circle cx="1060" cy="1022" r="13" fill="#11141B"/>
+<text x="1060" y="1026.8" font-family="Arial, Helvetica, sans-serif" font-size="12.5" fill="#FFFFFF" font-weight="bold" text-anchor="middle">13</text>
+<polyline points="1035,849 1060,864" fill="none" stroke="#6B7385" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#m)"/>
+<polyline points="1035,949 1060,964" fill="none" stroke="#6B7385" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#m)" marker-start="url(#ms)"/>
+<polyline points="1610,1064 1622,1064 1622,748 1594,748" fill="none" stroke="#6B7385" stroke-width="1.8" stroke-linejoin="round" stroke-dasharray="7 5" marker-end="url(#m)"/>
+<rect x="1650" y="460" width="920" height="760" rx="18" fill="#E3E8F0" stroke="none" stroke-width="0"/>
+<text x="1668" y="488" font-family="Arial, Helvetica, sans-serif" font-size="13" fill="#6B7385" font-weight="bold" text-anchor="start" letter-spacing="1.6">EXECUTION PLANE  (EFFECTS SIMULATED IN THE DEMO)</text>
+<rect x="1675" y="510" width="425" height="84" rx="10" fill="#FFFFFF" stroke="#D5DAE3" stroke-width="1.2"/>
+<circle cx="1697" cy="552.0" r="11" fill="#15803D"/>
+<text x="1717" y="548.5" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#0B0D12" font-weight="bold" text-anchor="start">Gmail</text>
+<text x="1717" y="566.5" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">real inbox, IMAP read-only, app password</text>
+<rect x="2120" y="510" width="425" height="84" rx="10" fill="#FFFFFF" stroke="#D5DAE3" stroke-width="1.2"/>
+<circle cx="2142" cy="552.0" r="11" fill="#15803D"/>
+<text x="2162" y="548.5" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#0B0D12" font-weight="bold" text-anchor="start">Payments</text>
+<text x="2162" y="566.5" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">bank account sandbox, saved payees</text>
+<rect x="1675" y="614" width="425" height="84" rx="10" fill="#FFFFFF" stroke="#D5DAE3" stroke-width="1.2"/>
+<circle cx="1697" cy="656.0" r="11" fill="#15803D"/>
+<text x="1717" y="652.5" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#0B0D12" font-weight="bold" text-anchor="start">File store</text>
+<text x="1717" y="670.5" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">private files: statements, board deck</text>
+<rect x="2120" y="614" width="425" height="84" rx="10" fill="#FFFFFF" stroke="#D5DAE3" stroke-width="1.2"/>
+<circle cx="2142" cy="656.0" r="11" fill="#15803D"/>
+<text x="2162" y="652.5" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#0B0D12" font-weight="bold" text-anchor="start">GitHub</text>
+<text x="2162" y="670.5" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">real repos over REST or MCP: issues, files, pull requests</text>
+<rect x="1675" y="718" width="425" height="84" rx="10" fill="#FFFFFF" stroke="#D5DAE3" stroke-width="1.2"/>
+<circle cx="1697" cy="760.0" r="11" fill="#15803D"/>
+<text x="1717" y="756.5" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#0B0D12" font-weight="bold" text-anchor="start">Postgres / Supabase</text>
+<text x="1717" y="774.5" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">SQL through MCP</text>
+<rect x="2120" y="718" width="425" height="84" rx="10" fill="#FFFFFF" stroke="#D5DAE3" stroke-width="1.2"/>
+<circle cx="2142" cy="760.0" r="11" fill="#15803D"/>
+<text x="2162" y="756.5" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#0B0D12" font-weight="bold" text-anchor="start">Slack</text>
+<text x="2162" y="774.5" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">channels and direct messages</text>
+<rect x="1675" y="822" width="870" height="84" rx="10" fill="#FFFFFF" stroke="#D5DAE3" stroke-width="1.2" stroke-dasharray="7 5"/>
+<text x="1689" y="860.5" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#0B0D12" font-weight="bold" text-anchor="start">Tool sandbox</text>
+<text x="1689" y="878.5" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">network egress allow-list, per-tool credentials</text>
+<text x="2535" y="838" font-family="Arial, Helvetica, sans-serif" font-size="9.5" fill="#B45309" font-weight="bold" text-anchor="end" letter-spacing="1">ROADMAP</text>
+<rect x="1675" y="922" width="870" height="84" rx="10" fill="#FFFFFF" stroke="#D5DAE3" stroke-width="1.2"/>
+<text x="1689" y="960.5" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#0B0D12" font-weight="bold" text-anchor="start">Saved-payee directory</text>
+<text x="1689" y="978.5" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">first-party system of record: labelled TRUSTED, so legitimate invoices pay without a prompt</text>
+<rect x="1675" y="1022" width="870" height="84" rx="10" fill="#FFFFFF" stroke="#D5DAE3" stroke-width="1.2"/>
+<text x="1689" y="1060.5" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#0B0D12" font-weight="bold" text-anchor="start">Raw results</text>
+<text x="1689" y="1078.5" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">returned to the output labeller before the agent sees them</text>
+<polyline points="1035,1156 1640,1156 1640,560 1675,560" fill="none" stroke="#15803D" stroke-width="2.4" stroke-linejoin="round" marker-end="url(#g)"/>
+<text x="1300" y="1150" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#15803D" font-weight="bold" text-anchor="middle">ALLOW: forward the call</text>
+<circle cx="1675" cy="1022" r="13" fill="#15803D"/>
+<text x="1675" y="1026.8" font-family="Arial, Helvetica, sans-serif" font-size="12.5" fill="#FFFFFF" font-weight="bold" text-anchor="middle">12</text>
+<polyline points="1675,1064 1614,1064" fill="none" stroke="#6B7385" stroke-width="1.8" stroke-linejoin="round" stroke-dasharray="7 5" marker-end="url(#m)"/>
+<rect x="30" y="1240" width="560" height="390" rx="18" fill="#E3E8F0" stroke="none" stroke-width="0"/>
+<text x="48" y="1268" font-family="Arial, Helvetica, sans-serif" font-size="13" fill="#6B7385" font-weight="bold" text-anchor="start" letter-spacing="1.6">HUMAN IN THE LOOP</text>
+<rect x="55" y="1290" width="510" height="74" rx="10" fill="#FFFFFF" stroke="#D5DAE3" stroke-width="1.2"/>
+<text x="69" y="1323.5" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#0B0D12" font-weight="bold" text-anchor="start">Approval service</text>
+<text x="69" y="1341.5" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">parks the call; unanswered requests time out to DENY</text>
+<rect x="55" y="1380" width="510" height="84" rx="10" fill="#FFFFFF" stroke="#D5DAE3" stroke-width="1.2"/>
+<text x="69" y="1411.0" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#0B0D12" font-weight="bold" text-anchor="start">Explainable approval card</text>
+<text x="69" y="1429.0" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">amount, destination, where the value came from, saved payee or not,</text>
+<text x="69" y="1444.0" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">recommendation</text>
+<rect x="55" y="1480" width="510" height="70" rx="10" fill="#FFFFFF" stroke="#D5DAE3" stroke-width="1.2"/>
+<text x="69" y="1511.5" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#0B0D12" font-weight="bold" text-anchor="start">Reviewer</text>
+<text x="69" y="1529.5" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">approve once or deny, with a reason</text>
+<rect x="55" y="1560" width="510" height="52" rx="10" fill="#FFFFFF" stroke="#D5DAE3" stroke-width="1.2" stroke-dasharray="7 5"/>
+<text x="69" y="1589.5" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#0B0D12" font-weight="bold" text-anchor="start">Slack / Teams approvals</text>
+<text x="555" y="1576" font-family="Arial, Helvetica, sans-serif" font-size="9.5" fill="#B45309" font-weight="bold" text-anchor="end" letter-spacing="1">ROADMAP</text>
+<circle cx="55" cy="1290" r="13" fill="#B45309"/>
+<text x="55" y="1294.8" font-family="Arial, Helvetica, sans-serif" font-size="12.5" fill="#FFFFFF" font-weight="bold" text-anchor="middle">11</text>
+<polyline points="635,1049 621,1049 621,1230 310,1230 310,1290" fill="none" stroke="#B45309" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#a)"/>
+<text x="330" y="1224" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#B45309" font-weight="bold" text-anchor="start">ESCALATE</text>
+<polyline points="310,1364 310,1380" fill="none" stroke="#B45309" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#a)" marker-start="url(#as)"/>
+<polyline points="310,1464 310,1480" fill="none" stroke="#B45309" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#a)" marker-start="url(#as)"/>
+<rect x="610" y="1240" width="1020" height="390" rx="18" fill="#E3E8F0" stroke="none" stroke-width="0"/>
+<text x="628" y="1268" font-family="Arial, Helvetica, sans-serif" font-size="13" fill="#6B7385" font-weight="bold" text-anchor="start" letter-spacing="1.6">EVIDENCE PLANE  (TAMPER-EVIDENT BY CONSTRUCTION)</text>
+<rect x="635" y="1290" width="300" height="90" rx="10" fill="#FFFFFF" stroke="#D5DAE3" stroke-width="1.2"/>
+<text x="649" y="1324.0" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#0B0D12" font-weight="bold" text-anchor="start">Receipt signer</text>
+<text x="649" y="1342.0" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">Ed25519 receipt per decision: call, labels,</text>
+<text x="649" y="1357.0" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">rule, verdict, reviewer</text>
+<rect x="955" y="1290" width="300" height="90" rx="10" fill="#FFFFFF" stroke="#D5DAE3" stroke-width="1.2"/>
+<text x="969" y="1324.0" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#0B0D12" font-weight="bold" text-anchor="start">Hash chain</text>
+<text x="969" y="1342.0" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">h(n) = SHA-256(h(n-1) + receipt n),</text>
+<text x="969" y="1357.0" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">append-only, Prisma</text>
+<rect x="1275" y="1290" width="330" height="90" rx="10" fill="#FFFFFF" stroke="#D5DAE3" stroke-width="1.2"/>
+<text x="1289" y="1324.0" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#0B0D12" font-weight="bold" text-anchor="start">Anchor job</text>
+<text x="1289" y="1342.0" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">every 5 min via viem; seq kept ahead of the</text>
+<text x="1289" y="1357.0" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">contract</text>
+<rect x="1275" y="1400" width="330" height="100" rx="10" fill="#11141B" stroke="#11141B" stroke-width="1.2"/>
+<text x="1289" y="1439.0" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#FFFFFF" font-weight="bold" text-anchor="start">AuditAnchor.sol</text>
+<text x="1289" y="1457.0" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#B9C2D6" font-weight="normal" text-anchor="start">Polygon Amoy 0x907a...6dba, head + seq,</text>
+<text x="1289" y="1472.0" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#B9C2D6" font-weight="normal" text-anchor="start">owner-only</text>
+<rect x="955" y="1400" width="300" height="100" rx="10" fill="#FFFFFF" stroke="#D5DAE3" stroke-width="1.2"/>
+<text x="969" y="1439.0" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#0B0D12" font-weight="bold" text-anchor="start">Chain verifier</text>
+<text x="969" y="1457.0" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">recomputes every hash, finds the on-chain</text>
+<text x="969" y="1472.0" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">head by hash, flags the edited receipt</text>
+<rect x="635" y="1400" width="300" height="100" rx="10" fill="#FFFFFF" stroke="#D5DAE3" stroke-width="1.2"/>
+<text x="649" y="1439.0" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#0B0D12" font-weight="bold" text-anchor="start">Demo backup</text>
+<text x="649" y="1457.0" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">rewrite / restore survives restarts,</text>
+<text x="649" y="1472.0" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">repaired only to the signed hash</text>
+<rect x="635" y="1520" width="970" height="84" rx="10" fill="#FFFFFF" stroke="#D5DAE3" stroke-width="1.2" stroke-dasharray="7 5"/>
+<text x="649" y="1558.5" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#0B0D12" font-weight="bold" text-anchor="start">Compliance export</text>
+<text x="649" y="1576.5" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">signed incident bundle for DPDP Rules 2025 and CERT-In 6-hour reporting</text>
+<text x="1595" y="1536" font-family="Arial, Helvetica, sans-serif" font-size="9.5" fill="#B45309" font-weight="bold" text-anchor="end" letter-spacing="1">ROADMAP</text>
+<circle cx="635" cy="1290" r="13" fill="#11141B"/>
+<text x="635" y="1294.8" font-family="Arial, Helvetica, sans-serif" font-size="12.5" fill="#FFFFFF" font-weight="bold" text-anchor="middle">14</text>
+<polyline points="935,1335 955,1335" fill="none" stroke="#11141B" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#k)"/>
+<polyline points="1255,1335 1275,1335" fill="none" stroke="#11141B" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#k)"/>
+<polyline points="1440,1380 1440,1400" fill="none" stroke="#11141B" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#k)"/>
+<polyline points="1275,1450 1255,1450" fill="none" stroke="#11141B" stroke-width="1.8" stroke-linejoin="round" stroke-dasharray="7 5" marker-end="url(#k)"/>
+<polyline points="1039,1049 1046,1049 1046,1232 785,1232 785,1290" fill="none" stroke="#11141B" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#k)"/>
+<text x="790" y="1226" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#0B0D12" font-weight="bold" text-anchor="start">every decision</text>
+<rect x="1650" y="1240" width="920" height="390" rx="18" fill="#E3E8F0" stroke="none" stroke-width="0"/>
+<text x="1668" y="1268" font-family="Arial, Helvetica, sans-serif" font-size="13" fill="#6B7385" font-weight="bold" text-anchor="start" letter-spacing="1.6">ASSURANCE + OBSERVABILITY</text>
+<rect x="1675" y="1290" width="425" height="84" rx="10" fill="#FFFFFF" stroke="#D5DAE3" stroke-width="1.2"/>
+<circle cx="1697" cy="1332.0" r="11" fill="#2B4BF2"/>
+<text x="1717" y="1328.5" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#0B0D12" font-weight="bold" text-anchor="start">InjecAgent replay</text>
+<text x="1717" y="1346.5" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">1,054 attacks, compromised agent: 100% to 0%, 0% false</text>
+<text x="1717" y="1361.5" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">blocks</text>
+<rect x="2120" y="1290" width="425" height="84" rx="10" fill="#FFFFFF" stroke="#D5DAE3" stroke-width="1.2"/>
+<circle cx="2142" cy="1332.0" r="11" fill="#2B4BF2"/>
+<text x="2162" y="1321.0" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#0B0D12" font-weight="bold" text-anchor="start">Real model</text>
+<text x="2162" y="1339.0" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">Claude Haiku 5.5, 2,108 conversations, 0 of 147 legit calls</text>
+<text x="2162" y="1354.0" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">blocked</text>
+<rect x="1675" y="1390" width="425" height="84" rx="10" fill="#FFFFFF" stroke="#D5DAE3" stroke-width="1.2"/>
+<circle cx="1697" cy="1432.0" r="11" fill="#2B4BF2"/>
+<text x="1717" y="1428.5" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#0B0D12" font-weight="bold" text-anchor="start">AgentDojo harness</text>
+<text x="1717" y="1446.5" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">banking + Slack ground truth, Python bridge</text>
+<rect x="2120" y="1390" width="425" height="84" rx="10" fill="#FFFFFF" stroke="#D5DAE3" stroke-width="1.2"/>
+<circle cx="2142" cy="1432.0" r="11" fill="#2B4BF2"/>
+<text x="2162" y="1428.5" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#0B0D12" font-weight="bold" text-anchor="start">Adaptive suite</text>
+<text x="2162" y="1446.5" font-family="Arial, Helvetica, sans-serif" font-size="11.5" fill="#6B7385" font-weight="normal" text-anchor="start">63 hand-written bypasses, 0 unexplained</text>
+<rect x="2120" y="1490" width="425" height="54" rx="10" fill="#FFFFFF" stroke="#D5DAE3" stroke-width="1.2"/>
+<text x="2134" y="1520.5" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#0B0D12" font-weight="bold" text-anchor="start">Next.js dashboard  (live, audit, evals)</text>
+<rect x="1675" y="1490" width="425" height="54" rx="10" fill="#FFFFFF" stroke="#D5DAE3" stroke-width="1.2" stroke-dasharray="7 5"/>
+<text x="1689" y="1520.5" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#0B0D12" font-weight="bold" text-anchor="start">SIEM export (Splunk, Elastic)</text>
+<text x="2090" y="1506" font-family="Arial, Helvetica, sans-serif" font-size="9.5" fill="#B45309" font-weight="bold" text-anchor="end" letter-spacing="1">ROADMAP</text>
+<rect x="1675" y="1556" width="870" height="54" rx="10" fill="#FFFFFF" stroke="#D5DAE3" stroke-width="1.2" stroke-dasharray="7 5"/>
+<text x="1689" y="1586.5" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#0B0D12" font-weight="bold" text-anchor="start">Kubernetes sidecar + Helm chart</text>
+<text x="2535" y="1572" font-family="Arial, Helvetica, sans-serif" font-size="9.5" fill="#B45309" font-weight="bold" text-anchor="end" letter-spacing="1">ROADMAP</text>
+<polyline points="2370,417 2370,452 2590,452 2590,1517 2545,1517" fill="none" stroke="#2B4BF2" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#b)"/></svg>
