@@ -122,6 +122,7 @@ const Charts = (() => {
   const det = Charts.hbars("cDetect", [
     { label: "Adaptive attacks vs 12 published defences", value: 90, color: C.blue, text: "over 90% (most)", tip: "Nasr, Carlini et al., USENIX Security 2026" },
     { label: "Heuristic injection detector, InjecAgent", value: 100, color: C.blue, text: "100% (flags 0%)", tip: "Our own heuristic detector flags 0% of InjecAgent injections" },
+    { label: "Prompt Guard 2 (ML), our 5 live attacks", value: 100, color: C.blue, text: "100% (flags 0 of 5)", tip: "Meta Llama Prompt Guard 2 (86M) scored all five realistic demo attacks below 0.002" },
     { label: "AgentShield, InjecAgent (1,054 attacks)", value: 0, color: C.sig, text: "0%", tip: "Contract + provenance, fully compromised agent: 0 of 1,054" },
     { label: "AgentShield, adaptive suite (63 attempts)", value: 0, color: C.sig, text: "0 unexplained (9 documented limits)", tip: "63 hand-written bypass attempts: 9 succeed, all documented known limits" },
   ], { labelW: 390, rowH: 40 });

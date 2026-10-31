@@ -289,6 +289,33 @@
   </div>
 </section>
 
+<!-- ============ 07b ML DETECTOR, MEASURED ============ -->
+<section class="slide" id="s-brain" data-title="An AI classifier alone" data-sub="Prompt Guard 2 on our own attacks">
+  <div class="frame">
+    <div class="eyebrow" data-a>Measured on our demo &nbsp;/&nbsp; Meta Llama Prompt Guard 2, 86M, run locally</div>
+    <h2 data-a style="max-width:none">We run a real ML classifier. <em>It sees nothing.</em></h2>
+    <div class="brain">
+      <table class="matrix ev" data-a>
+        <thead><tr><th style="width:360px">Attack in the live demo</th><th>Prompt Guard 2 score</th><th>AgentShield</th></tr></thead>
+        <tbody>
+          <tr><td>Fake invoice: pay 48,000 to the attacker</td><td class="sc bad">0.0009 &nbsp;benign</td><td class="ok">Stopped<small>account number came from the email</small></td></tr>
+          <tr><td>Email bank_statements.csv to "IT audit"</td><td class="sc bad">0.0013 &nbsp;benign</td><td class="ok">Stopped<small>sending files is not part of the task</small></td></tr>
+          <tr><td>"Storage full": delete the board deck</td><td class="sc bad">0.0011 &nbsp;benign</td><td class="ok">Stopped<small>deleting is not part of the task</small></td></tr>
+          <tr><td>Recipient hidden as base64</td><td class="sc bad">0.0017 &nbsp;benign</td><td class="ok">Stopped<small>outside the signed scope</small></td></tr>
+          <tr><td>Private repo into a public PR</td><td class="sc bad">0.0009 &nbsp;benign</td><td class="ok">Stopped<small>SECRET data into a PUBLIC sink</small></td></tr>
+          <tr class="dim"><td>"Ignore all previous instructions..."</td><td class="sc">0.9988 &nbsp;injection</td><td>the only one it catches</td></tr>
+        </tbody>
+      </table>
+      <div class="duo">
+        <div data-a><b class="s">0 / 5</b><span>realistic attacks flagged by the classifier</span></div>
+        <div data-a><b class="b">5 / 5</b><span>stopped by contracts and provenance, no model in the decision</span></div>
+        <div class="note" data-a>We keep it: int8 ONNX in the core, about 30 ms per email. It can <b>raise</b> risk. It never allows or denies.</div>
+      </div>
+    </div>
+    <p class="src" data-a style="margin-top:18px">Scores on the subject and body of each attack email or issue in /live, 31 Oct 2026. Real injections read like normal requests, which is why classifiers miss them; adaptive attacks beat the rest (Nasr, Carlini et al., USENIX Security 2026).</p>
+  </div>
+</section>
+
 <!-- ============ 08 MATRIX ============ -->
 <section class="slide" id="s-matrix" data-title="Where solutions sit" data-sub="Capability comparison">
   <div class="frame">
@@ -309,6 +336,25 @@
   </div>
 </section>
 
+<!-- ============ 08b RESEARCH ============ -->
+<section class="slide" id="s-research" data-title="Same principles as the research" data-sub="CaMeL, FIDES, Rule of Two">
+  <div class="frame">
+    <div class="eyebrow" data-a>Research &nbsp;/&nbsp; independent implementation</div>
+    <h2 data-a style="max-width:none">Same principles as <em>the latest research</em></h2>
+    <table class="matrix" data-a>
+      <thead><tr><th style="width:420px">Paper</th><th>What it shows</th><th style="width:330px">Our version</th></tr></thead>
+      <tbody>
+        <tr><td>The Attacker Moves Second<small>Nasr, Carlini et al., USENIX Security 2026</small></td><td>Adaptive attacks beat 12 published defences, most at over 90%</td><td class="y">Detectors are advisory only</td></tr>
+        <tr><td>CaMeL<small>Google DeepMind, SaTML 2026</small></td><td>Plan from the user's request only; track where data came from; check before each tool call</td><td class="y">Intent contract + provenance</td></tr>
+        <tr><td>FIDES<small>Microsoft, 2025</small></td><td>Label data by integrity and confidentiality; enforce before sensitive tools</td><td class="y">Integrity x confidentiality labels, sink checks</td></tr>
+        <tr><td>Agents Rule of Two<small>Meta, 2025</small></td><td>Untrusted input + private data + external action needs a human</td><td class="y">Escalation to an explainable approval</td></tr>
+        <tr><td>Design Patterns for Securing LLM Agents<small>Beurer-Kellner, Tramer et al., 2025</small></td><td>Constrain what an agent can do once it has read untrusted input</td><td class="y">Default-deny, scoped, signed contract</td></tr>
+      </tbody>
+    </table>
+    <div class="honest" data-a style="margin-top:22px"><b>THE TRADE</b><span>We use no code from these papers. CaMeL and FIDES track data flow by construction, but need the agent rebuilt around them (CaMeL: 84% to 77% task success). We trace data by matching, so any existing agent works unchanged; the price is that a paraphrased leak can slip through, a documented limit.</span></div>
+  </div>
+</section>
+
 <!-- ============ 09 IDEAS ============ -->
 <section class="slide dark" id="s-ideas" data-title="The idea" data-sub="Three checks that never trust the model">
   <div class="frame">
@@ -320,7 +366,7 @@
       <div class="idea" data-a><div class="num">03</div><h3>Risk-adaptive causal check</h3><p>Only for high-risk calls the rules cannot settle, replay the step with the user's task masked. If the action survives, the content it read is driving it.</p><div class="fix">FIXES: MELON-style checks that double the cost of every step</div></div>
     </div>
     <div class="extras">
-      <div data-a><b>Explainable approvals</b>each pause shows the exact rule and data source</div>
+      <div data-a><b>Explainable approvals</b>each pause shows the rule and data source; approve once, denials remembered</div>
       <div data-a><b>Signed action receipts</b>Ed25519, hash-chained, anchored on Polygon Amoy</div>
       <div data-a><b>Drop-in</b>TypeScript and Python SDKs, MCP proxy for Claude Desktop, Cursor, VS Code</div>
     </div>
@@ -339,7 +385,7 @@
           <svg class="wires" id="wires" width="1600" height="960"></svg>
 
           <div class="plane" style="left:0;top:0;width:1600px;height:92px"><span class="pt">Agent runtimes (any model, any framework)</span></div>
-          <div data-g="1" class="nd" data-s="1" style="left:12px;top:30px;width:250px"><b>Gemini agent</b><span>Vercel AI SDK, live demo</span></div>
+          <div data-g="1" class="nd" data-s="1" style="left:12px;top:30px;width:250px"><b>Gemini agent</b><span>live demo: real Gmail + GitHub</span></div>
           <div data-g="1" class="nd" style="left:276px;top:30px;width:250px"><b>Claude / OpenAI agents</b><span>TypeScript, generateText + tools</span></div>
           <div data-g="1" class="nd" style="left:540px;top:30px;width:250px"><b>LangChain agents</b><span>Python, LangChain adapter</span></div>
           <div data-g="1" class="nd" style="left:804px;top:30px;width:250px"><b>Claude Desktop / Cursor / VS Code</b><span>any MCP client, zero code change</span></div>
@@ -378,7 +424,7 @@
           <div data-g="7" class="nd" style="left:700px;top:356px;width:166px"><b>Label store</b><span>integrity x confidentiality</span></div>
           <div data-g="7" class="nd" style="left:874px;top:356px;width:166px"><b>Tracers</b><span>exact, tokens, 4-gram shingles</span></div>
           <div data-g="8" class="nd" style="left:700px;top:414px;width:166px"><b>Injection detector</b><span>heuristic, advisory only</span></div>
-          <div data-g="8" class="nd road" style="left:874px;top:414px;width:166px"><b>Prompt Guard 2</b><span>model detector, advisory</span></div>
+          <div data-g="8" class="nd" style="left:874px;top:414px;width:166px"><b>Prompt Guard 2</b><span>local ONNX model, advisory</span></div>
           <div data-g="9" class="nd" style="left:700px;top:472px;width:340px"><b>Shadow replay runner</b><span>re-run the step with the user's task masked (MELON-style)</span></div>
           <div data-g="13" class="nd" data-s="13" style="left:700px;top:530px;width:340px"><b>Output labeller</b><span>every result tagged UNTRUSTED + confidentiality, fingerprinted</span></div>
 
@@ -394,8 +440,8 @@
           <div data-g="12" class="nd" data-s="12" style="left:1076px;top:530px;width:512px"><b>Raw results</b><span>returned to the output labeller before the agent sees them</span></div>
 
           <div class="plane" style="left:0;top:690px;width:420px;height:270px"><span class="pt">Human in the loop</span></div>
-          <div data-g="11" class="nd" data-s="11" style="left:12px;top:722px;width:396px"><b>Approval service</b><span>parks the call; unanswered requests time out to DENY</span></div>
-          <div data-g="11" class="nd" style="left:12px;top:782px;width:396px"><b>Explainable approval card</b><span>amount, destination, where the value came from</span></div>
+          <div data-g="11" class="nd" data-s="11" style="left:12px;top:722px;width:396px"><b>Approval service</b><span>approve is one-off, denials remembered; timeout = DENY</span></div>
+          <div data-g="11" class="nd" style="left:12px;top:782px;width:396px"><b>Explainable approval card</b><span>destination, value origin, made-up values flagged</span></div>
           <div data-g="11" class="nd" style="left:12px;top:842px;width:396px"><b>Reviewer</b><span>approve once or deny, with a reason</span></div>
           <div data-g="11" class="nd road" style="left:12px;top:902px;width:396px"><b>Slack / Teams approvals</b></div>
 
@@ -403,7 +449,7 @@
           <div data-g="14" class="nd" data-s="14" style="left:446px;top:722px;width:190px"><b>Receipt signer</b><span>Ed25519 receipt per decision</span></div>
           <div data-g="14" class="nd" style="left:648px;top:722px;width:190px"><b>Hash chain</b><span>h(n) = SHA-256(h(n-1) + r(n))</span></div>
           <div data-g="14" class="nd" style="left:850px;top:722px;width:190px"><b>Anchor job</b><span>every 5 min via viem</span></div>
-          <div data-g="14" class="nd" style="left:446px;top:792px;width:190px"><b>Demo backup</b><span>repaired only to signed hash</span></div>
+          <div data-g="14" class="nd" style="left:446px;top:792px;width:190px"><b>Claim check</b><span>agent's claims vs receipts</span></div>
           <div data-g="14" class="nd" style="left:648px;top:792px;width:190px"><b>Chain verifier</b><span>recomputes every hash</span></div>
           <div data-g="14" class="nd dark" style="left:850px;top:792px;width:190px"><b>AuditAnchor.sol</b><span>Polygon Amoy 0x907a...6dba</span></div>
           <div data-g="14" class="nd road" style="left:446px;top:870px;width:594px"><b>Compliance export</b><span>signed incident bundle for DPDP Rules 2025 and CERT-In 6-hour reporting</span></div>
@@ -425,6 +471,48 @@
         <div class="layer" id="capLayer">Overview</div>
         <div class="txt" id="capTxt">Every tool call is checked before it runs. Every decision is signed, chained and anchored on-chain.</div>
         <div class="key"><div><i style="border:3px solid #E8441A"></i>current step</div><div><i style="border:2px solid #0B0B0C"></i>already covered</div><div><i style="border:1px dashed #5E5A52"></i>roadmap</div><div><i style="background:#E1E6FF;border:1px solid #AEBBFF"></i>trusted plane</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 10b LIVE DEMO ============ -->
+<section class="slide" id="s-live" data-title="Live demo" data-sub="Real Gemini agent, real Gmail and GitHub">
+  <div class="frame">
+    <div class="eyebrow" data-a>Live demo &nbsp;/&nbsp; /live in the dashboard</div>
+    <h2 data-a style="max-width:none">Same agent, same inbox. <em>Shield on.</em></h2>
+    <div class="shots">
+      <figure class="shot" data-a><img src="agentshield/img/live-off.jpg" alt="Shield off: the attacker receives 48,000"><figcaption><span class="pill deny">SHIELD OFF</span>attacker paid 48,000, bank statement emailed out</figcaption></figure>
+      <figure class="shot" data-a><img src="agentshield/img/live-on.jpg" alt="Shield on: the payment waits for a human"><figcaption><span class="pill ask">SHIELD ON</span>real invoice paid; 48,000 parked: account came from an unknown sender</figcaption></figure>
+    </div>
+    <div class="scen" data-a>
+      <div><b>Fake invoice</b><span>human decides</span></div>
+      <div><b>Steal a file</b><span>contract</span></div>
+      <div><b>Delete files</b><span>contract</span></div>
+      <div><b>Hidden address</b><span>signed scope</span></div>
+      <div><b>Leak private code</b><span>provenance</span></div>
+      <div><b>Made-up account</b><span>hallucination flag</span></div>
+      <div class="ok"><b>Normal day</b><span>nothing blocked</span></div>
+    </div>
+    <p class="src" data-a style="margin-top:14px">Agent: Gemini through the Vercel AI SDK (recorded replay as offline fallback). Real inputs: a Gmail inbox over IMAP and GitHub issues and repos over the REST API, both read-only; payments, emails and pull requests stay simulated.</p>
+  </div>
+</section>
+
+<!-- ============ 10c HALLUCINATIONS ============ -->
+<section class="slide" id="s-halluc" data-title="Hallucinations" data-sub="Made-up values, false claims, approvals">
+  <div class="frame">
+    <div class="eyebrow" data-a>Hallucinations and approvals</div>
+    <h2 data-a style="max-width:none">Hallucinations can't <em>turn into actions</em></h2>
+    <div class="two hl">
+      <div class="points">
+        <div data-a><span>01</span><p><b>Malformed calls.</b> Typed tool schemas; unknown tools and undeclared arguments fail closed.</p></div>
+        <div data-a><span>02</span><p><b>Made-up values.</b> A payment account that appears nowhere, not in the request and not in anything read, goes to a human. The agent "remembered" 2210 5513; the real one is 2210 5531.</p></div>
+        <div data-a><span>03</span><p><b>False claims.</b> The agent's last message is checked against signed receipts. "Paid 48,000" after a block shows as <b>never happened</b>.</p></div>
+        <div data-a><span>04</span><p><b>Approve once, deny for good.</b> An approval covers one call. A denied action is denied again without asking; a switch turns this off for demos.</p></div>
+      </div>
+      <div class="cards">
+        <figure class="shot" data-a><img src="agentshield/img/card-ghost.png" alt="Approval card: appears nowhere, possibly hallucinated"></figure>
+        <figure class="shot" data-a><img src="agentshield/img/card-claims.png" alt="Claim check: two false claims"></figure>
       </div>
     </div>
   </div>
@@ -477,7 +565,94 @@
         <div class="foot">The model fell for 2 of 1,054 enhanced attacks; the contract denied both. 0 of 147 legitimate calls blocked; every conversation still answered.</div>
       </div>
     </div>
-    <div class="honest" data-a><b>HONEST LIMITS</b><span>The replay measures the shield, not a model. The contract comes from a planner that reads only the user instruction. The causal check relies on MELON's premise. 9 of 63 adaptive variants succeed, all documented (e.g. a paraphrased leak inside an allowed action). AgentDojo workspace and travel suites not yet run.</span></div>
+    <div class="honest" data-a><b>HONEST LIMITS</b><span>The replay measures the shield, not a model. The contract comes from a planner that reads only the user instruction. The causal check relies on MELON's premise. 9 of 63 adaptive variants succeed, all documented (e.g. a paraphrased leak or a phishing link inside an allowed action). AgentDojo workspace and travel suites not yet run.</span></div>
+  </div>
+</section>
+
+<!-- ============ 12b SDK USE CASES ============ -->
+<section class="slide" id="s-sdk1" data-title="How teams use it, 1" data-sub="Money and code">
+  <div class="frame">
+    <div class="eyebrow" data-a>SDK in production &nbsp;/&nbsp; real stakes, not toy demos</div>
+    <h2 data-a style="max-width:none">Money and code: <em>a few lines each</em></h2>
+    <div class="sdk">
+      <div class="uc" data-a>
+        <div class="meta"><b>TypeScript / Vercel AI SDK / any model</b></div>
+        <h3>Fintech: accounts-payable agent</h3>
+        <div class="code sm"><span class="k">import { Shield } from "@agentshield/sdk";</span>
+
+await Shield.registerTools([{
+  name: "payments.pay", app: "payments", effect: "write", tier: "HIGH",
+  keywords: ["pay", "invoice", "vendor"], controlArgs: ["beneficiary"],
+  params: { beneficiary: "IBAN", amount: "INR", memo: "ref" },
+}]);
+
+<span class="c">// contract compiled from the finance ticket, never from the invoices</span>
+const shield = await Shield.fromRequest(ticket.text, { agentId: "ap-bot" });
+await generateText({ model, prompt: ticket.text,
+  tools: shield.wrap({ "payments.pay": pay, read_invoice }) });</div>
+        <ul class="stops"><li>Beneficiary copied from an emailed invoice: a human decides</li><li>Above the 50,000 policy limit: a human decides</li><li>Bank details invented by the model: flagged as made up</li></ul>
+      </div>
+      <div class="uc" data-a>
+        <div class="meta"><b>Claude Desktop / Cursor / VS Code via the MCP proxy, zero code</b></div>
+        <h3>Engineering: coding agent on GitHub</h3>
+        <div class="code sm"><span class="c">// claude_desktop_config.json</span>
+"github": {
+  "command": "npx",
+  "args": ["tsx", "agentshield/packages/mcp-proxy/src/cli.ts",
+    "--name", "github",
+    "--task", "Triage the open issues in acme/website",
+    "--", "npx", "-y", "@modelcontextprotocol/server-github"],
+  "env": { "GITHUB_PERSONAL_ACCESS_TOKEN": "..." }
+}
+
+<span class="c">// every tools/call now goes through AgentShield</span></div>
+        <ul class="stops"><li>Issue says &#x27;copy the private repo into a PR&#x27;: blocked</li><li>Writes outside acme/website: outside the contract</li><li>Tool description changed after install: quarantined</li></ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s-sdk2" data-title="How teams use it, 2" data-sub="Customer data and infrastructure">
+  <div class="frame">
+    <div class="eyebrow" data-a>SDK in production &nbsp;/&nbsp; Python and TypeScript</div>
+    <h2 data-a style="max-width:none">Customer data and infrastructure</h2>
+    <div class="sdk">
+      <div class="uc" data-a>
+        <div class="meta"><b>Python / LangChain</b></div>
+        <h3>Support: agent on the customer database</h3>
+        <div class="code sm"><span class="k">from agentshield import Shield, ToolSpec</span>
+
+Shield.register_tools([
+  ToolSpec(name="run_sql", app="db", effect="read", tier="MEDIUM",
+           keywords=["customer", "order", "refund"],
+           output_confidentiality="SECRET", params={"sql": "query"}),
+  ToolSpec(name="reply_to_ticket", app="support", effect="write",
+           tier="MEDIUM", keywords=["reply"], scope_arg="ticket_id",
+           control_args=["ticket_id"], sink_args={"body": "PUBLIC"},
+           params={"ticket_id": "id", "body": "text"}),
+])
+shield = Shield.from_request(f"Reply to ticket {t.id}", agent_id="support")
+tools = shield.wrap_langchain_tools([run_sql, reply_to_ticket])</div>
+        <ul class="stops"><li>Ticket asks to &#x27;include the API keys table&#x27;: SECRET into PUBLIC, denied</li><li>Reply to a different ticket: outside the contract</li><li>Every answer leaves a signed receipt for audit</li></ul>
+      </div>
+      <div class="uc" data-a>
+        <div class="meta"><b>TypeScript / any agent framework</b></div>
+        <h3>Platform: SRE agent with shell access</h3>
+        <div class="code sm"><span class="k">import { Shield } from "@agentshield/sdk";</span>
+
+await Shield.registerTools([
+  { name: "shell.exec", app: "shell", effect: "write", tier: "HIGH",
+    keywords: ["restart", "deploy", "rollout"],
+    controlArgs: ["command"], params: { command: "shell" } },
+  { name: "read_logs", app: "logs", effect: "read", tier: "LOW",
+    keywords: ["logs"], params: { service: "name" } },
+]);
+const shield = await Shield.fromRequest("Restart checkout and check its logs",
+  { agentId: "sre-bot", preset: "strict", onBlock: "throw" });
+const tools = shield.wrap({ "shell.exec": sh, read_logs });</div>
+        <ul class="stops"><li>&#x27;curl ... | sh&#x27; or &#x27;rm -rf&#x27; in any command: forbidden by policy</li><li>Command copied from a poisoned log line: a human decides</li><li>High-risk write after untrusted reads (strict): a human decides</li></ul>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -498,7 +673,7 @@
 <span class="k">const</span> tools  = shield.wrap(myTools);
 
 <span class="c">// any MCP client, zero code change:</span>
-<span class="c">// npx agentshield proxy</span></div>
+<span class="c">// packages/mcp-proxy --task "..." -- &lt;server&gt;</span></div>
       <div data-a>
         <div class="thanks">Thank you<i></i></div>
         <p class="endtag">The agent can think anything. It can only do what you asked for.</p>
@@ -509,7 +684,7 @@
 </section>
 
 <!-- chrome -->
-<div class="chrome"><span>AgentShield / teamCookie()</span><span class="mid" id="chromeTitle"></span><span class="r"><span id="chromeNo">01 / 13</span><button id="bPrev" aria-label="Previous">&larr;</button><button id="bNext" aria-label="Next">&rarr;</button></span></div>
+<div class="chrome"><span>AgentShield / teamCookie()</span><span class="mid" id="chromeTitle"></span><span class="r"><span id="chromeNo">01 / 19</span><button id="bPrev" aria-label="Previous">&larr;</button><button id="bNext" aria-label="Next">&rarr;</button></span></div>
 <div class="segs" id="segs"></div>
 <div class="hint">&rarr; next &nbsp; O overview &nbsp; F fullscreen</div>
 <div class="tip" id="tip"></div>

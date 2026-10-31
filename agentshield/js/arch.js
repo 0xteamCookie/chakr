@@ -10,14 +10,14 @@
     4: ["Trusted control plane", "The intent contract is Ed25519-signed and frozen: default deny, narrow-only, widening needs a human."],
     5: ["Decision core", "The normalizer validates schema, session and agent id."],
     6: ["Decision core", "Contract check: is the signature valid, and are this action and its scope in the contract?"],
-    7: ["Decision core", "Provenance: every untrusted value is decoded 12 ways, labelled, and traced to who wrote it and who may see it."],
-    8: ["Decision core + policy", "Org policy (built-in or OPA) sets the risk tier, LOW to FORBIDDEN. Detectors can only raise risk."],
+    7: ["Decision core", "Provenance: every untrusted value is decoded 12 ways, labelled, and traced to who wrote it and who may see it. A high-risk value that appears nowhere is flagged as possibly hallucinated."],
+    8: ["Decision core + policy", "Org policy (built-in or OPA) sets the risk tier, LOW to FORBIDDEN. Detectors (Prompt Guard 2 + heuristic) can only raise risk."],
     9: ["Decision core", "Only HIGH-risk calls the rules cannot settle are replayed with the user's task masked."],
     10: ["Decision", "ALLOW, ESCALATE or DENY. A denial returns a structured error to the agent."],
-    11: ["Human in the loop", "ESCALATE parks the call behind an explainable card. No answer means DENY."],
+    11: ["Human in the loop", "ESCALATE parks the call behind an explainable card. Approve covers one call; a denial is remembered. No answer means DENY."],
     12: ["Execution plane", "ALLOW forwards the call to the real tool. Raw results go to the labeller, not straight to the agent."],
     13: ["Decision core", "Every result is tagged UNTRUSTED with its confidentiality and fingerprinted for later tracing."],
-    14: ["Evidence plane", "Every decision becomes an Ed25519 receipt, hash-chained, verified and anchored on Polygon Amoy."],
+    14: ["Evidence plane", "Every decision becomes an Ed25519 receipt, hash-chained, verified and anchored on Polygon Amoy. The agent\u2019s claims are checked against them."],
     15: ["Assurance + observability", "Decisions stream to the dashboard, and the engine is measured: InjecAgent, AgentDojo, a real model, adaptive attacks."],
   };
 

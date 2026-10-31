@@ -280,3 +280,40 @@ h2 em{font-style:normal;color:var(--sig-ink)}
 .thanks{font-size:150px;font-weight:800;line-height:.84;letter-spacing:-.055em}
 .thanks i{display:inline-block;width:.32em;height:.32em;background:var(--d-sig);margin-left:.06em}
 .endtag{margin-top:26px;font-size:24px;font-weight:600;color:#CFCAC0}
+
+/* ---------- v2 additions: ML evidence, research, live demo, hallucinations, SDK ---------- */
+.brain{display:grid;grid-template-columns:1fr 360px;gap:32px;margin-top:30px;align-items:start}
+.brain .matrix{margin-top:0}
+.matrix.ev td{padding:11px 14px}
+.matrix td.sc{font-family:var(--mono);font-weight:500}
+.matrix td.sc.bad{color:var(--sig-ink)}
+.matrix td.ok{color:var(--ok);font-weight:700}
+.matrix tr.dim td{color:var(--muted);background:#FAF8F3}
+.duo{display:grid;gap:0;border-top:2px solid var(--ink)}
+.duo div{border-bottom:2px solid var(--ink);padding:18px 0 18px}
+.duo b{display:block;font-size:84px;font-weight:800;letter-spacing:-.05em;line-height:.9}
+.duo b.s{color:var(--sig-ink)} .duo b.b{color:var(--blue)}
+.duo span{display:block;font-size:16px;color:var(--ink2);margin-top:10px;line-height:1.38}
+.duo .note{font-size:15px;line-height:1.45;color:var(--ink2);border-bottom:0}
+.duo .note b{display:inline;font-size:inherit;font-weight:700;letter-spacing:0;line-height:inherit}
+.shots{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:26px}
+.shot{border:2px solid var(--ink);background:var(--paper);margin:0}
+.shot img{display:block;width:100%;height:auto}
+.shot figcaption{border-top:2px solid var(--ink);padding:10px 14px;font-size:14px;color:var(--ink2);display:flex;gap:12px;align-items:center}
+.scen{display:grid;grid-template-columns:repeat(7,1fr);border-left:2px solid var(--ink);margin-top:18px}
+.scen div{border-right:2px solid var(--ink);padding:6px 14px}
+.scen b{display:block;font-size:15px}
+.scen span{display:block;font-family:var(--mono);font-size:11.5px;color:var(--sig-ink);margin-top:3px}
+.scen div.ok span{color:var(--ok)}
+.hl{grid-template-columns:1fr 620px;gap:44px;align-items:start}
+.hl .points{margin-top:30px}
+.hl .points div{font-size:18px;padding:14px 0}
+.cards{display:grid;gap:22px;margin-top:30px}
+.sdk{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:34px}
+.uc .meta{font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:.03em}
+.uc .meta b{font-weight:500}
+.uc h3{font-size:30px;margin:8px 0 16px;line-height:1.1}
+.code.sm{font-size:13.6px;line-height:1.72;padding:22px 22px;overflow:hidden}
+.stops{list-style:none;margin-top:20px;display:grid;gap:10px}
+.stops li{font-size:17px;color:var(--ink2);padding-left:22px;position:relative;line-height:1.35}
+.stops li::before{content:"";position:absolute;left:0;top:6px;width:10px;height:10px;background:var(--sig)}
