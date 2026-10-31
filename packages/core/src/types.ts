@@ -98,6 +98,8 @@ export interface ShieldSettings {
   approvalTimeoutMs: number;
   /** content similarity under which a replayed action counts as different */
   causalThreshold: number;
+  /** escalate HIGH-tier writes whose deciding value appears nowhere (not asked for, not read): a likely hallucination */
+  flagUntraced?: boolean;
 }
 
 export const PRESETS: Record<"strict" | "balanced" | "permissive" | "off", ShieldSettings> = {

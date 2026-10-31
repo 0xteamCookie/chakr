@@ -16,7 +16,15 @@ and every decision becomes a signed, hash-chained receipt.
 | **2. Argument provenance** | Traces every argument to who wrote it (integrity) and who may see it (confidentiality), through base64, hex, URL-encoding, homoglyphs, zero-width characters and spelled-out values. Secret data can't flow into a public sink. | none |
 | **3. Policy + risk tier** | Org rules: tiers, limits, forbidden patterns, mandatory human approval. Built-in evaluator, or Open Policy Agent when `OPA_URL` is set. | none |
 | **4. Causal check** | Only for high-risk calls the rules can't settle: replay the step with the *user's task masked*. If the agent still takes the action, the content it read is driving it (masked re-execution, as in MELON, ICML 2025), so it is denied. | 1 replay, rarely |
-| Detector (advisory) | Heuristic injection score (Prompt Guard can be plugged in). Can only raise risk, never allow or deny. | none |
+| Detector (advisory) | Llama Prompt Guard 2 (86M, local ONNX) plus a heuristic. Can only raise risk, never allow or deny: on our five realistic demo attacks it scores 0.0009 to 0.0017 ("benign"). | none (local model) |
+
+Hallucinations are handled the same way: a high-risk write whose deciding value appears nowhere (not in the request,
+not in anything the agent read) is escalated as "possibly hallucinated", and on `/live` the agent's final message is
+checked against what actually ran ("paid 48,000" after a block shows as never happened).
+
+Approvals are one-off: approving lets that one call through and the same action asks again next time. Denials are
+remembered, so the same action (same tool, same deciding arguments) is denied without asking; `/live` has a switch to
+turn this off and a "Forget" button (`GET/PUT/DELETE /api/approvals/memory`).
 
 Escalations go to an explainable approval card. Every decision is an Ed25519-signed receipt whose hash chains to the
 previous one; the head is anchored on a public testnet (`contracts/AuditAnchor.sol`) or locally.
@@ -118,7 +126,7 @@ Open http://localhost:3000/console, pick a scenario, press **Run side by side**.
 Other commands:
 
 ```bash
-pnpm test                                      # 54 engine tests + scenario matrix
+pnpm test                                      # 61 engine tests + scenario matrix
 pnpm eval                                      # InjecAgent replay (data in eval/data, refetch with pnpm eval:fetch)
 pnpm --filter @agentshield/core eval:adaptive  # 63 hand-written bypass attempts
 pnpm --filter @agentshield/core eval:llm --setting enhanced   # InjecAgent with Claude Haiku 5.5 (needs ANTHROPIC_API_KEY, ~$0.35)
@@ -166,6 +174,7 @@ docs                 architecture diagram and screenshots
 | `AGENTSHIELD_DATA_DIR` | keys, database and evaluation results (default `.data`) |
 | `GMAIL_USER`, `GMAIL_APP_PASSWORD` | real inbox for `/live` ("Load from Gmail"), read-only over IMAP; use a demo account. `GMAIL_MAILBOX`, `GMAIL_LIMIT` (6), `GMAIL_SINCE_HOURS` (72) narrow what is read |
 | `GITHUB_TOKEN`, `GITHUB_REPO` | real GitHub for `/live` ("GitHub" button): open issues of `GITHUB_REPO`, file reads from any repo the token sees. Pull requests are simulated unless `GITHUB_ALLOW_WRITE=1`; use throwaway demo repos |
+| `DETECTOR` | `heuristic` turns Prompt Guard 2 off. The model is fetched once with `pnpm --filter @agentshield/core model:fetch` (into `.data/models`); without it the heuristic is used |
 
 ## What is simulated
 

@@ -9,12 +9,13 @@ import { PRESETS, type ShieldSettings, type ToolSpec } from "./types.js";
 import { SCENARIOS, scenario, allScenarioTools } from "./scenarios/index.js";
 import { runScenario, runs, type RunResult } from "./runner.js";
 import { bus } from "./events.js";
-import { decide, pendingApprovals } from "./approvals.js";
+import { decide, denialMemory, forgetDenials, pendingApprovals, setDenialMemory } from "./approvals.js";
 import { anchorHead, startAnchorLoop, verifyChain, rewriteHistory } from "./receipts.js";
 import { db } from "./db.js";
 import { DATA_DIR, sha256, signingKey } from "./crypto.js";
 import { compileRules } from "./contract.js";
-import { currentDetector, injectionScore } from "./detector.js";
+import { currentDetector, heuristicScore, injectionScore, setDetector } from "./detector.js";
+import { loadPromptGuard, promptGuardScore } from "./promptguard.js";
 import { runInjecAgentEval } from "./eval/injecagent.js";
 import { runAdaptiveEval } from "./eval/adaptive.js";
 import { registerLive } from "./live.js";
@@ -29,7 +30,7 @@ const presetName = z.enum(["strict", "balanced", "permissive", "off"]);
 const settingsSchema = z.object({
   contract: z.boolean(), provenance: z.boolean(), deobfuscate: z.boolean(), causal: z.boolean(),
   detector: z.boolean(), escalateHighAfterUntrusted: z.boolean(), approvalTimeoutMs: z.number().int().min(5_000).max(600_000),
-  causalThreshold: z.number().min(0.1).max(0.95),
+  causalThreshold: z.number().min(0.1).max(0.95), flagUntraced: z.boolean(),
 }).partial();
 
 const wrap = (fn: (req: Request, res: Response) => Promise<unknown> | unknown) => async (req: Request, res: Response) => {
@@ -101,6 +102,13 @@ registerLive(app);
 
 // ---------------------------------------------------------------- approvals
 app.get("/api/approvals", wrap(() => pendingApprovals()));
+// denial memory: approvals are one-off, denials are remembered (switchable for demos)
+app.get("/api/approvals/memory", wrap(() => denialMemory()));
+app.put("/api/approvals/memory", wrap((req) => {
+  setDenialMemory(z.object({ enabled: z.boolean() }).parse(req.body).enabled);
+  return denialMemory();
+}));
+app.delete("/api/approvals/memory", wrap(() => { forgetDenials(); return denialMemory(); }));
 app.get("/api/approvals/history", wrap(async () => {
   const rows = await db.approval.findMany({ orderBy: { createdAt: "desc" }, take: 30 });
   return rows.map((r) => ({ ...r, args: JSON.parse(r.args), reasons: JSON.parse(r.reasons), context: JSON.parse(r.context) }));
@@ -247,7 +255,7 @@ app.post("/v1/sessions", wrap((req) => {
     preset: presetName.optional(), settings: settingsSchema.optional(), systemPrompt: z.string().optional(),
   }).parse(req.body);
   const s = shield.startSession({ task: b.task, agentId: b.agentId, tools: b.tools, systemPrompt: b.systemPrompt,
-    settings: { ...PRESETS[b.preset ?? "balanced"], ...(b.settings ?? {}) } });
+    settings: { ...PRESETS[b.preset ?? "balanced"], flagUntraced: true, ...(b.settings ?? {}) } });
   return { sessionId: s.id, contract: s.contract };
 }));
 app.post("/v1/check", wrap(async (req) => {
@@ -267,4 +275,10 @@ app.post("/v1/result", wrap(async (req) => {
 app.listen(PORT, () => {
   startAnchorLoop();
   console.log(`AgentShield core listening on http://localhost:${PORT}`);
+  // the ML detector, if its model is on disk; it adds to the heuristic score and stays advisory
+  loadPromptGuard().then((ok) => {
+    if (!ok) return console.log("detector: heuristic (run `pnpm --filter @agentshield/core model:fetch` for Prompt Guard 2)");
+    setDetector(async (t) => Math.max(heuristicScore(t), await promptGuardScore(t)), "prompt-guard-2-86m+heuristic");
+    console.log("detector: Prompt Guard 2 (86M) + heuristic");
+  }).catch((e) => console.log(`detector: heuristic (Prompt Guard failed to load: ${(e as Error).message})`));
 });

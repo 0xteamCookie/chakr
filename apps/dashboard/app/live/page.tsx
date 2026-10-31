@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { api, post, fmtArgs, useLive, type Approval, type ArgLabel } from "@/lib/api";
+import { API, api, post, fmtArgs, useLive, type Approval, type ArgLabel } from "@/lib/api";
 import { Ic } from "@/components/pitch/icons";
 
 interface Email { from: string; subject: string; body: string; attacker?: boolean; gmail?: boolean; kind?: "issue"; github?: boolean; repo?: string }
@@ -20,12 +20,16 @@ interface LiveRun {
   id: string; task: string; shield: boolean; mode: "live" | "scripted"; model: string; banner: string | null;
   status: "running" | "done" | "error"; error?: string; steps: Step[]; world: World; startBalance: number;
   outcome: { kind: string; headline: string; detail: string[]; stolen: number } | null;
+  scan?: { detector: string; items: { model: number | null; heuristic: number }[] } | null;
+  claims?: { text: string; ok: boolean; kind: string }[];
 }
+interface Memory { enabled: boolean; denied: { key: string; tool: string; args: Record<string, unknown>; at: string }[] }
 interface Scenario { id: string; title: string; icon: string; attack: string; task: string; inbox: Email[] }
 interface Defaults {
   inbox: Email[]; tasks: string[]; scenarios?: Scenario[]; model: string; hasKey: boolean; payees?: { name: string; account: string }[];
   gmail?: { configured: boolean; account: string | null };
   github?: { configured: boolean; repo: string | null; writes: boolean };
+  detector?: { name: string; model: boolean };
 }
 
 const fmt = (n: number) => Number(n).toLocaleString("en-US");
@@ -57,6 +61,7 @@ function chips(s: Step): { icon: string; text: string; tone: Tone }[] {
   const out: { icon: string; text: string; tone: Tone }[] = [];
   const reasons = s.reasons ?? [];
   if (reasons.some((r) => r.startsWith("contract:"))) out.push({ icon: "lock", text: "Not part of the task", tone: "red" });
+  if (reasons.some((r) => r.includes("appears nowhere"))) out.push({ icon: "alert", text: "Made-up value: appears nowhere", tone: "red" });
   for (const p of s.provenance ?? []) {
     const m = /^(\w+) came from (.+)$/.exec(p);
     if (m && ["to_account", "to", "name"].includes(m[1])) {
@@ -68,7 +73,8 @@ function chips(s: Step): { icon: string; text: string; tone: Tone }[] {
   const code = [...new Set(reasons.flatMap((r) => [...r.matchAll(/read_repo_file#([\w.-]+):/g)].map((m) => m[1])))];
   if (code.length) out.push({ icon: "lock", text: `Private code from ${code.join(", ")}`, tone: "red" });
   else if (reasons.some((r) => /sink/.test(r))) out.push({ icon: "lock", text: "Private data leaving", tone: "red" });
-  if (reasons.some((r) => r.startsWith("reviewer: denied"))) out.push({ icon: "x", text: "You denied it", tone: "red" });
+  if (reasons.some((r) => r.startsWith("reviewer: denied automatically"))) out.push({ icon: "x", text: "Denied before, not asked again", tone: "red" });
+  else if (reasons.some((r) => r.startsWith("reviewer: denied"))) out.push({ icon: "x", text: "You denied it", tone: "red" });
   if (reasons.some((r) => r.startsWith("reviewer: approved"))) out.push({ icon: "check", text: "You approved it", tone: "green" });
   if (reasons.some((r) => r.startsWith("reviewer: no decision"))) out.push({ icon: "x", text: "Timed out, denied", tone: "red" });
   return out;
@@ -97,6 +103,15 @@ export default function LivePage() {
   const [loadingMail, setLoadingMail] = useState(false);
   const [scenario, setScenario] = useState<string | null>("invoice");
   const approvals = useLive<Approval[]>("/api/approvals", ["approval"], 1500);
+  const memory = useLive<Memory>("/api/approvals/memory", ["approval"], 3000);
+  const setMemory = async (enabled: boolean) => {
+    await fetch(`${API}/api/approvals/memory`, { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify({ enabled }) }).catch(() => null);
+    memory.reload().catch(() => null);
+  };
+  const forget = async () => {
+    await fetch(`${API}/api/approvals/memory`, { method: "DELETE" }).catch(() => null);
+    memory.reload().catch(() => null);
+  };
 
   useEffect(() => {
     api<Defaults>("/api/live/defaults").then((d) => { setDefs(d); setInbox(d.inbox); }).catch((e) => setError(e.message));
@@ -191,14 +206,15 @@ export default function LivePage() {
       </div>
 
       {!fromGmail && !fromGithub && (defs?.scenarios?.length ?? 0) > 0 && (
-        <div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-6" role="group" aria-label="Demo scenarios">
+        <div className="grid gap-2 sm:grid-cols-4 lg:grid-cols-7" role="group" aria-label="Demo scenarios">
           {defs!.scenarios!.map((sc) => {
             const on = scenario === sc.id;
             const safe = sc.id === "clean";
+            const mistake = sc.id === "ghost";
             return (
               <button key={sc.id} type="button" onClick={() => pick(sc)} disabled={running} aria-pressed={on}
                 className={`flex items-center gap-3 rounded-2xl border-2 px-3.5 py-3 text-left transition-all disabled:opacity-60 ${on ? "border-ink bg-white shadow-sm" : "border-transparent bg-white/60 hover:bg-white"}`}>
-                <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${safe ? "bg-green-soft text-green" : "bg-orange-soft text-orange"}`}>
+                <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${safe ? "bg-green-soft text-green" : mistake ? "bg-amber-soft text-amber" : "bg-orange-soft text-orange"}`}>
                   <Ic n={sc.icon} size={20} />
                 </span>
                 <span className="min-w-0">
@@ -210,6 +226,27 @@ export default function LivePage() {
           })}
         </div>
       )}
+
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-2 px-1 text-[12.5px] text-ink-2">
+        <span className="inline-flex items-center gap-1.5" title="Advisory ML classifier: it can raise risk, never allow or deny">
+          <span className={`h-2 w-2 rounded-full ${defs?.detector?.model ? "bg-green" : "bg-muted"}`} />
+          <Ic n="bot" size={14} /> {defs?.detector?.model ? "Prompt Guard 2 (86M) loaded, advisory" : "Heuristic detector, advisory"}
+        </span>
+        <span className="h-4 w-px bg-line" />
+        <button type="button" onClick={() => setMemory(!(memory.data?.enabled ?? true))} role="switch" aria-checked={memory.data?.enabled ?? true}
+          className="inline-flex items-center gap-2" title="On: a denied action is denied again without asking. Approvals always ask again.">
+          <span className={`relative h-5 w-9 rounded-full transition-colors ${memory.data?.enabled ?? true ? "bg-blue" : "bg-line"}`}>
+            <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all ${memory.data?.enabled ?? true ? "left-[18px]" : "left-0.5"}`} />
+          </span>
+          Remember denials
+        </button>
+        {(memory.data?.denied.length ?? 0) > 0 && (
+          <span className="inline-flex items-center gap-1.5">
+            <span className="rounded-full bg-red-soft px-2 py-0.5 font-mono text-[11px] text-red">{memory.data!.denied.length} denied</span>
+            <button type="button" onClick={forget} className="text-[12px] text-blue underline-offset-2 hover:underline">Forget</button>
+          </span>
+        )}
+      </div>
 
       {notice && (
         <div className="flex items-center gap-2 rounded-xl border border-amber/30 bg-amber-soft px-4 py-2.5 text-[13px] text-amber">
@@ -229,7 +266,7 @@ export default function LivePage() {
             {fromGithub && <span className="ml-auto truncate font-mono text-[11px] text-blue" title="Real issues, read-only">{defs?.github?.repo}</span>}
           </div>
           <div className="space-y-2">
-            {inbox.map((m, i) => <MailCard key={`${m.from}-${i}`} m={m} i={i} onEdit={(b) => edit(i, b)} />)}
+            {inbox.map((m, i) => <MailCard key={`${m.from}-${i}`} m={m} i={i} onEdit={(b) => edit(i, b)} score={run?.scan?.items[i]?.model ?? null} />)}
           </div>
           {fromGmail && <p className="mt-3 flex items-center gap-1.5 text-[11.5px] text-muted"><Ic n="lock" size={13} /> read-only, actions stay simulated</p>}
           {fromGithub && <p className="mt-3 flex items-center gap-1.5 text-[11.5px] text-muted"><Ic n="lock" size={13} /> {defs?.github?.writes ? "real reads, pull requests are really opened" : "real reads, pull requests stay simulated"}</p>}
@@ -272,6 +309,7 @@ export default function LivePage() {
               </ol>
             )}
           </div>
+          {run?.status === "done" && (run.claims?.length ?? 0) > 0 && <Claims claims={run.claims!} />}
         </section>
 
         {/* ------------------------------------------------ the world */}
@@ -331,7 +369,7 @@ function SegBtn({ on, onClick, disabled, icon, label }: { on: boolean; onClick: 
   );
 }
 
-function MailCard({ m, i, onEdit }: { m: Email; i: number; onEdit: (b: string) => void }) {
+function MailCard({ m, i, onEdit, score }: { m: Email; i: number; onEdit: (b: string) => void; score: number | null }) {
   const [open, setOpen] = useState(false);
   return (
     <div className={`rounded-xl border ${m.attacker ? "border-orange/40 bg-orange-soft/60" : "border-line bg-white"}`}>
@@ -346,6 +384,12 @@ function MailCard({ m, i, onEdit }: { m: Email; i: number; onEdit: (b: string) =
             {m.attacker && <span title={m.kind === "issue" ? "Planted attack issue" : "Planted attack email"} className="text-orange"><Ic n="alert" size={14} /></span>}
           </span>
           <span className="block truncate text-[13px] font-medium">{m.subject}</span>
+          {score !== null && (
+            <span title="Prompt Guard 2: probability of injected instructions (advisory only)"
+              className={`mt-1 inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 font-mono text-[10.5px] ${score >= 0.5 ? "bg-red-soft text-red" : "bg-canvas text-ink-2"}`}>
+              <Ic n="bot" size={11} /> {score >= 0.5 ? "injection" : "looks benign"} {score.toFixed(3)}
+            </span>
+          )}
           {!open && <span className="block truncate text-[12px] text-muted">{m.body}</span>}
         </span>
       </button>
@@ -477,6 +521,11 @@ function LiveApproval({ a, run, inbox, payees, onDone }: {
             </div>
           </div>
           <div className="flex flex-wrap gap-2 text-[12.5px]">
+            {a.reasons.some((r) => r.includes("appears nowhere")) && (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-red-soft px-2.5 py-1 font-medium text-red">
+                <Ic n="alert" size={13} /> appears nowhere: possibly hallucinated
+              </span>
+            )}
             {email && (
               <span className="inline-flex items-center gap-1.5 rounded-full bg-red-soft px-2.5 py-1 font-medium text-red">
                 <Ic n="mail" size={13} /> came from an email by {email.from}
@@ -633,5 +682,29 @@ function PullRequests({ run }: { run: LiveRun | null }) {
         </div>
       </Panel>
     </>
+  );
+}
+
+function Claims({ claims }: { claims: { text: string; ok: boolean }[] }) {
+  const bad = claims.filter((c) => !c.ok).length;
+  return (
+    <div className={`card anim-fade-up p-4 ${bad ? "border-red/40" : ""}`}>
+      <div className="mb-2.5 flex items-center gap-2">
+        <Ic n="hash" size={17} />
+        <span className="text-[14px] font-semibold">What the agent said vs what happened</span>
+        <span className={`ml-auto rounded-full px-2 py-0.5 text-[11.5px] font-medium ${bad ? "bg-red-soft text-red" : "bg-green-soft text-green"}`}>
+          {bad ? `${bad} false claim${bad > 1 ? "s" : ""}` : "all true"}
+        </span>
+      </div>
+      <div className="space-y-1.5">
+        {claims.map((c, i) => (
+          <div key={i} className={`flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-[12.5px] ${c.ok ? "bg-canvas" : "bg-red-soft text-red"}`}>
+            <Ic n={c.ok ? "check" : "x"} size={14} />
+            <span className="truncate">&ldquo;{c.text}&rdquo;</span>
+            <span className="ml-auto shrink-0 text-[11.5px] font-medium">{c.ok ? "receipt confirms" : "never happened"}</span>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }

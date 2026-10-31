@@ -10,7 +10,7 @@ import { display } from "./normalize.js";
 import { DEFAULT_POLICY, evaluatePolicy, maxTier, raiseTier, type Policy } from "./policy.js";
 import { injectionScore } from "./detector.js";
 import { causalCheck, type ReplayFn } from "./causal.js";
-import { requestApproval } from "./approvals.js";
+import { actionKey, deniedBefore, rememberDenial, requestApproval } from "./approvals.js";
 import { appendReceipt } from "./receipts.js";
 import { bus } from "./events.js";
 
@@ -101,7 +101,10 @@ export class Shield {
     let causal: CausalResult | undefined;
 
     const finish = async (v: Verdict): Promise<Decision> => {
-      if (v === "ESCALATE" && spec?.effect === "write") reasons.push(...this.reviewerNotes(s, spec, call, labels));
+      if (v === "ESCALATE" && spec?.effect === "write") {
+        const ghost = reasons.some((r) => r.includes("appears nowhere"));
+        reasons.push(...this.reviewerNotes(s, spec, call, labels).filter((n) => !(ghost && n.includes("cannot be traced"))));
+      }
       const d: Decision = {
         verdict: v, risk, reasons, labels, layers, injectionScore: s.maxInjection, causal,
         latencyMs: Number((performance.now() - t0).toFixed(3)),
@@ -169,6 +172,19 @@ export class Shield {
       }
     } else if (!st.provenance) {
       layers.push({ layer: "provenance", outcome: "skip", detail: "provenance layer off" });
+    }
+
+    // ---- untraced values: a high-risk write whose deciding value nobody gave the agent (likely hallucinated)
+    if (st.flagUntraced && st.provenance && !verdict && spec.effect === "write" && spec.tier === "HIGH") {
+      const control = new Set(spec.controlArgs ?? []);
+      const ghost = labels.filter((l) => control.has(l.arg) && l.sources.length === 0 && stringify(call.args[l.arg]).trim().length >= 4);
+      if (ghost.length) {
+        const which = ghost.map((l) => `'${display(l.arg, 30)}'`).join(", ");
+        verdict = "ESCALATE";
+        risk = maxTier(risk, "HIGH");
+        reasons.push(`provenance: ${which} appears nowhere in the request or in anything the agent read (possibly hallucinated)`);
+        layers.push({ layer: "provenance", outcome: "flag", detail: `untraced value: ${which}` });
+      }
     }
 
     // ---- advisory detector: can only raise risk
@@ -242,7 +258,13 @@ export class Shield {
   private async conclude(s: Session, call: ToolCall, d: Decision, opts: CheckOptions): Promise<Decision> {
     let final = d;
     let reviewer: string | null = null;
-    if (d.verdict === "ESCALATE" && opts.escalation !== "return") {
+    const key = actionKey(call, this.tools.get(call.tool));
+    const prior = d.verdict === "ESCALATE" && opts.escalation !== "return" && !opts.review ? deniedBefore(key) : undefined;
+    if (prior) {
+      // the reviewer already said no to this exact action: do not ask again
+      reviewer = "memory: denied before";
+      final = { ...d, verdict: "DENY", reasons: [...d.reasons, `reviewer: denied automatically, you denied this same action at ${prior.at}`] };
+    } else if (d.verdict === "ESCALATE" && opts.escalation !== "return") {
       bus.emit("decision", { sessionId: s.id, call, decision: d, pending: true });
       const card = this.card(s, call, d);
       const outcome = opts.review
@@ -253,6 +275,7 @@ export class Shield {
         focus: card.focus, recommended: card.recommended,
       }, s.settings.approvalTimeoutMs);
       reviewer = outcome.by === "timeout" ? "timeout" : `human: ${outcome.approved ? "approved" : "denied"}`;
+      if (!opts.review && outcome.by === "human" && !outcome.approved) rememberDenial(key, call);
       final = { ...d, verdict: outcome.approved ? "ALLOW" : "DENY",
         reasons: [...d.reasons, `reviewer: ${outcome.by === "timeout" ? "no decision before timeout" : outcome.approved ? "approved" : "denied"}${outcome.note ? ` (${outcome.note})` : ""}`] };
     }
